@@ -7,6 +7,9 @@ library(shiny)
 library(shinydashboard)
 library(rhandsontable)
 
+source("tableFileUI.R")
+source("tableFile.R")
+
 ## Header
 
 header <- dashboardHeader(title = "biogrowth")
@@ -21,7 +24,9 @@ sidebar <- dashboardSidebar(
         menuItem("Dynamic predictions", tabName = "dyna_prediction"),
         menuItem("Static fitting", tabName = "st_fit"),
         menuItem("Dynamic fitting", tabName = "dyna_fit"),
-        menuItem("Cardinal parameters", tabName = "cardinal")
+        menuItem("Cardinal parameters", tabName = "cardinal"),
+        menuItem("Github page", icon = icon("github"),
+                 href = "https://github.com/albgarre/biogrowth_web")
     )
 )
 

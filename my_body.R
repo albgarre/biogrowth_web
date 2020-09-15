@@ -125,7 +125,70 @@ body <- dashboardBody(
         ################################################
         
         tabItem(tabName = "st_fit",
-                h2("Model fitting under static conditions")
+                fluidRow(
+                    tableFileUI("pred_micro_data",
+                                inputBoxTitle = "Input Microbial counts",
+                                outputBoxTitle = "Microbial data",
+                                default_frame = data.frame(c(0, 5, 7.5, 2.5, 6, 8),
+                                                           c(1e6, 1e5, 15000, 800000, 30000, 1e3)
+                                )
+                    )
+                ),
+                fluidRow(
+                    box(title = "Model parameters",
+                        selectInput(
+                            "model_static_fit",
+                            "Primary growth model",
+                            list(Baranyi = "Baranyi", 
+                                 `Modified Gompertz` = "modGompertz",
+                                 `Tri-linear` = "Trilinear")
+                        ),
+                        wellPanel(
+                            fluidRow(
+                                column(6, numericInput("static_fit_logN0", "logN0", 2)),                            
+                                column(2, checkboxInput("static_fit_logN0_fix", "fixed?", value = FALSE))
+                            ),
+                            fluidRow(
+                                column(6, numericInput("static_fit_mu", "mu", .2)),                            
+                                column(2, checkboxInput("static_fit_mu_fix", "fixed?", value = FALSE))
+                            ),
+                            fluidRow(
+                                column(6, numericInput("static_fit_lambda", "lambda", 25)),                            
+                                column(2, checkboxInput("static_fit_lambda_fix", "fixed?", value = FALSE))
+                            ),
+                            fluidRow(
+                                conditionalPanel(
+                                    condition = "input.model_static_fit != 'modGompertz'",
+                                    column(6, numericInput("static_fit_logNmax", "logNmax", 8)),                            
+                                    column(2, checkboxInput("static_fit_logNmax_fix", "fixed?", value = FALSE))
+                                )
+                            ),
+                            fluidRow(
+                                conditionalPanel(
+                                    condition = "input.model_static_fit == 'modGompertz'",
+                                    column(6, numericInput("static_fit_C", "C", 6)),                            
+                                    column(2, checkboxInput("static_fit_C_fix", "fixed?", value = FALSE))
+                                )
+                            ),
+                            fluidRow(
+                                actionButton("button_static_fit", "Fit model")
+                            )
+                        )
+                        
+                        ),
+                    box(title = "Model fit",
+                        plotOutput("plot_static_fit"))
+                ),
+                fluidRow(
+                    box(title = "Fitted parameters", status = "warning",
+                        solidHeader = TRUE, collapsible = TRUE,
+                        tableOutput("static_fit_par")
+                    ),
+                    box(title = "Fit diagnostics", status = "warning",
+                        solidHeader = TRUE, collapsible = TRUE,
+                        plotOutput("static_fit_residual")
+                        )
+                    )
                 ),
         
         ################################################
