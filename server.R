@@ -8,7 +8,7 @@ source("tableFile.R")
 
 server <- function(input, output) {
     
-    ## Static predictions
+    ## Static predictions -----------------------------------------------------
     
     static_prediction <- reactive({
         
@@ -43,7 +43,7 @@ server <- function(input, output) {
         
     })
     
-    ## Stochastic static predictions
+    ## Stochastic static predictions -------------------------------------------------
     
     static_prediction_stoc <- reactive({
         
@@ -86,7 +86,7 @@ server <- function(input, output) {
         static_time_distrib()$summary
     })
     
-    ## Static fitting
+    ## Static fitting -----------------------------------------------------
     
     pred_micro_data <- callModule(tableFile, "pred_micro_data",
                                   default_data = tibble(time = c(0, 25, 50, 75, 100),
@@ -171,6 +171,210 @@ server <- function(input, output) {
         
     })
     
+    ## Cardinal fitting ------------------------------------------------
+    
+    ## Data input
+    
+    card_excelFile <- reactive({
+        validate(need(input$card_excel_file, label = "Excel"))
+        input$card_excel_file
+    })
+    
+    card_excel_frame <- reactive({
+        read_excel(card_excelFile()$datapath,
+                   sheet = input$card_excel_sheet,
+                   skip = input$card_excel_skip,
+                   col_types = "numeric")
+    })
+    
+    output$card_plot_input <- renderPlot({
+        
+        card_excel_frame() %>%
+            gather(var, value, -mu) %>%
+            ggplot() +
+                geom_point(aes(x = value, y = mu)) +
+                facet_wrap("var", scales = "free_x") +
+                xlab("")
+        
+    })
+    
+    ## Dynamic secondary model selector
+    
+    card_id_dynamic <- c() # so I can remove them later
+    
+    observeEvent(input$card_update, {
+        
+        my_names <- card_excel_frame() %>%
+            select(-mu) %>%
+            names()
+        
+        # Remove old ones
+        
+        if (length(card_id_dynamic) > 0) {
+            
+            for (each_id in card_id_dynamic) {
+                removeUI(
+                    ## pass in appropriate div id
+                    selector = paste0('#', each_id)
+                )
+            }
+            
+            card_id_dynamic <<- c()
+            
+        }
+        
+        # Insert new ones
+        
+        for (each_name in my_names) {
+            
+            id <- paste0('card_', each_name)
+            
+            insertUI(
+                selector = '#cardPlaceholder',
+                ui = tags$div(
+                    tags$h3(paste("Condition:", each_name)), 
+                    selectInput(paste0(id, "_model"),
+                                "Model type",
+                                list(`Cardinal` = "CPM", Zwietering = "Zwietering")),
+                    fluidRow(
+                        column(6,
+                               numericInput(paste0(id, "_xmin"), "Xmin", 0)
+                               ),
+                        column(6,
+                               checkboxInput(paste0(id, "_xmin_fix"), "fixed?")
+                               )
+                    ),
+                    fluidRow(
+                        column(6,
+                               numericInput(paste0(id, "_xopt"), "Xopt", 37)
+                        ),
+                        column(6,
+                               checkboxInput(paste0(id, "_xopt_fix"), "fixed?")
+                        )
+                    ),
+                    fluidRow(
+                        column(6,
+                               numericInput(paste0(id, "_xmax"), "Xmax (only in cardinal model)", 45)
+                        ),
+                        column(6,
+                               checkboxInput(paste0(id, "_xmax_fix"), "fixed?")
+                        )
+                    ),
+                    # conditionalPanel(
+                    #     condition = sprintf("input.%s == 'CMP'", paste0(id, "_model")),
+                    #     numericInput(paste0(id, "_xmax"), "Xmax", 45),
+                    # ),
+                    fluidRow(
+                        column(6,
+                               numericInput(paste0(id, "_n"), "n", 1)
+                        ),
+                        column(6,
+                               checkboxInput(paste0(id, "_n_fix"), "fixed?")
+                        )
+                    ),
+                    tags$hr(),
+                    id = id
+                )
+            )
+            
+            card_id_dynamic <<- c(card_id_dynamic, id)
+        }
+
+    })
+    
+    ## Model fitting
+    
+    card_gamma_fit <- eventReactive(input$card_fitModel, {
+        
+        ## Extract model parameters
+        
+        my_factors <- card_excel_frame() %>%
+            select(-mu) %>%
+            names()
+        
+        sec_model_names <- c()
+        this_p <- list()
+        known_pars <- list()
+        
+        if (isTRUE(input$card_muopt_fix)) {
+            known_pars$mu_opt <- input$card_muopt
+        } else {
+            this_p$mu_opt <- input$card_muopt
+        }
+        
+        for (i in 1:length(my_factors)) {
+            
+            factor_name <- my_factors[[i]]
+            factor_id <- card_id_dynamic[[i]]
+            
+            
+            model_id <- paste0(factor_id, "_model")
+            sec_model_names[factor_name] <- input[[model_id]]
+            
+            xmin_id <- paste0(factor_id, "_xmin")
+            
+            if (isTRUE(input[[paste0(xmin_id, "_fix")]])) {
+                known_pars[[paste0(factor_name, "_xmin")]] <- input[[xmin_id]]
+            } else {
+                this_p[[paste0(factor_name, "_xmin")]] <- input[[xmin_id]]
+            }
+            
+            xopt_id <- paste0(factor_id, "_xopt")
+            
+            if (isTRUE(input[[paste0(xopt_id, "_fix")]])) {
+                known_pars[[paste0(factor_name, "_xopt")]] <- input[[xopt_id]]
+            } else {
+                this_p[[paste0(factor_name, "_xopt")]] <- input[[xopt_id]]
+            }
+            
+            # this_p[[paste0(factor_name, "_xopt")]] <- input[[xopt_id]]
+            
+            xmax_id <- paste0(factor_id, "_xmax")
+            
+            if (isTRUE(input[[paste0(xmax_id, "_fix")]])) {
+                known_pars[[paste0(factor_name, "_xmax")]] <- input[[xmax_id]]
+            } else {
+                this_p[[paste0(factor_name, "_xmax")]] <- input[[xmax_id]]
+            }
+            
+            # this_p[[paste0(factor_name, "_xmax")]] <- input[[xmax_id]]
+            
+            n_id <- paste0(factor_id, "_n")
+            
+            if (isTRUE(input[[paste0(n_id, "_fix")]])) {
+                known_pars[[paste0(factor_name, "_n")]] <- input[[n_id]]
+            } else {
+                this_p[[paste0(factor_name, "_n")]] <- input[[n_id]]
+            }
+            
+            # this_p[[paste0(factor_name, "_n")]] <- input[[n_id]]
+            
+            if (input[[model_id]] == "Zwietering") {
+                this_p[[paste0(factor_name, "_xmax")]] <- NULL
+                known_pars[[paste0(factor_name, "_xmax")]] <- NULL
+            }
+            
+        }
+        
+        print("To fit:")
+        print(this_p)
+        print("")
+        print("Fixed")
+        print(known_pars)
+        
+        ## Fit the model
+        
+        fit_secondary_growth(card_excel_frame(),
+                             this_p, known_pars, sec_model_names)
+    })
+    
+    output$card_fit_results <- renderTable({
+        aa <- card_gamma_fit() %>% summary()
+        
+        as_tibble(aa$par, rownames = "Parameter")
+        
+    })
+
 }
 
 

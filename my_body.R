@@ -6,7 +6,9 @@ body <- dashboardBody(
         tabItem(tabName = "welcome",
                 h2("Welcome tab")
                 ),
-        ###########################################
+        
+        ## Static prediction
+        
         tabItem(tabName = "st_prediction",
                 h2("Deterministic prediction"),
                 fluidRow(
@@ -116,13 +118,13 @@ body <- dashboardBody(
                 )
                 ),
         
-        ################################################
+        ## Dynamic prediction
         
         tabItem(tabName = "dyna_prediction",
                 h2("Predictions under dynamic conditions")
                 ),
         
-        ################################################
+        ## Static fit
         
         tabItem(tabName = "st_fit",
                 fluidRow(
@@ -191,17 +193,59 @@ body <- dashboardBody(
                     )
                 ),
         
-        ################################################
+        ## Dynamic fit
         
         tabItem(tabName = "dyna_fit",
                 h2("Model fitting under dynamic conditions")
                 ),
         
-        ###############################################
+        ## Cardinal fit
         
         tabItem(tabName = "cardinal",
-                h2("Model fitting of cardinal parameters")
+                fluidRow(
+                    box(
+                        fileInput("card_excel_file", "Excel file"),
+                        textInput("card_excel_sheet", "Sheet name", "Sheet1"),
+                        numericInput("card_excel_skip", "Skip", 0)
+                    ),
+                    box(
+                        plotOutput("card_plot_input")
+                    )
+                ),
+                fluidRow(
+                    box(width = 12,
+                        actionButton("card_update", "Update"),
+                        tags$hr(),
+                        fluidRow(
+                            column(6,
+                                   numericInput("card_muopt", "mu_opt", 0.5)
+                                   ),
+                            column(6,
+                                   checkboxInput("card_muopt_fix", "fixed?")
+                                   )
+                            
+                        ),
+                        tags$div(id = 'cardPlaceholder') ,
+                        actionButton("card_fitModel", "Fit model")
+                    )
+                    
+                ),
+                fluidRow(
+                    box(
+                        tableOutput("card_fit_results")
+                    )
+                )
                 )
     )
     
 )
+
+
+
+
+
+
+
+
+
+
