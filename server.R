@@ -1,4 +1,3 @@
-
 library(tidyverse)
 library(biogrowth)
 library(readxl)
@@ -19,7 +18,7 @@ server <- function(input, output) {
                                        lambda = input$static_pred_lambda,
                                        logNmax = input$static_pred_logNmax,
                                        C = input$static_pred_C)
-                                  )
+        )
         
     })
     
@@ -91,7 +90,7 @@ server <- function(input, output) {
     pred_micro_data <- callModule(tableFile, "pred_micro_data",
                                   default_data = tibble(time = c(0, 25, 50, 75, 100),
                                                         logN = c(2, 2.5, 7, 8, 8))
-                                  )
+    )
     
     static_fit_results <- eventReactive(input$button_static_fit, {
         
@@ -138,11 +137,11 @@ server <- function(input, output) {
             start$C <- NULL
             known$C <- NULL
         }
-
+        
         static_fit <- fit_isothermal_growth(my_data, my_model,
                                             unlist(start),
                                             unlist(known)
-                                            )
+        )
         
         
     })
@@ -192,9 +191,9 @@ server <- function(input, output) {
         card_excel_frame() %>%
             gather(var, value, -mu) %>%
             ggplot() +
-                geom_point(aes(x = value, y = mu)) +
-                facet_wrap("var", scales = "free_x") +
-                xlab("")
+            geom_point(aes(x = value, y = mu)) +
+            facet_wrap("var", scales = "free_x") +
+            xlab("")
         
     })
     
@@ -239,10 +238,10 @@ server <- function(input, output) {
                     fluidRow(
                         column(6,
                                numericInput(paste0(id, "_xmin"), "Xmin", 0)
-                               ),
+                        ),
                         column(6,
                                checkboxInput(paste0(id, "_xmin_fix"), "fixed?")
-                               )
+                        )
                     ),
                     fluidRow(
                         column(6,
@@ -254,7 +253,7 @@ server <- function(input, output) {
                     ),
                     fluidRow(
                         column(6,
-                               numericInput(paste0(id, "_xmax"), "Xmax (only in cardinal model)", 45)
+                               numericInput(paste0(id, "_xmax"), "Xmax (only in CMP model)", 45)
                         ),
                         column(6,
                                checkboxInput(paste0(id, "_xmax_fix"), "fixed?")
@@ -279,7 +278,7 @@ server <- function(input, output) {
             
             card_id_dynamic <<- c(card_id_dynamic, id)
         }
-
+        
     })
     
     ## Model fitting
@@ -349,18 +348,13 @@ server <- function(input, output) {
             
             # this_p[[paste0(factor_name, "_n")]] <- input[[n_id]]
             
-            if (input[[model_id]] == "Zwietering") {
-                this_p[[paste0(factor_name, "_xmax")]] <- NULL
-                known_pars[[paste0(factor_name, "_xmax")]] <- NULL
-            }
-            
         }
         
-        print("To fit:")
-        print(this_p)
-        print("")
-        print("Fixed")
-        print(known_pars)
+        # print("To fit:")
+        # print(this_p)
+        # print("")
+        # print("Fixed")
+        # print(known_pars)
         
         ## Fit the model
         
@@ -374,22 +368,8 @@ server <- function(input, output) {
         as_tibble(aa$par, rownames = "Parameter")
         
     })
-
+    
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
