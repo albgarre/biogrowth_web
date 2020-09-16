@@ -253,7 +253,7 @@ server <- function(input, output) {
                     ),
                     fluidRow(
                         column(6,
-                               numericInput(paste0(id, "_xmax"), "Xmax (only in CMP model)", 45)
+                               numericInput(paste0(id, "_xmax"), "Xmax (only in cardinal model)", 45)
                         ),
                         column(6,
                                checkboxInput(paste0(id, "_xmax_fix"), "fixed?")
@@ -347,6 +347,11 @@ server <- function(input, output) {
             }
             
             # this_p[[paste0(factor_name, "_n")]] <- input[[n_id]]
+            
+            if (input[[model_id]] == "Zwietering") {
+                this_p[[paste0(factor_name, "_xmax")]] <- NULL
+                known_pars[[paste0(factor_name, "_xmax")]] <- NULL
+            }
             
         }
         
