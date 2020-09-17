@@ -179,7 +179,8 @@ body <- dashboardBody(
                         
                         ),
                     box(title = "Model fit",
-                        plotOutput("plot_static_fit"))
+                        plotOutput("plot_static_fit")
+                        )
                 ),
                 fluidRow(
                     box(title = "Fitted parameters", status = "warning",
@@ -188,7 +189,9 @@ body <- dashboardBody(
                     ),
                     box(title = "Fit diagnostics", status = "warning",
                         solidHeader = TRUE, collapsible = TRUE,
-                        plotOutput("static_fit_residual")
+                        plotOutput("static_fit_residual"),
+                        tags$hr(),
+                        plotOutput("static_fit_resHist")
                         )
                     )
                 ),

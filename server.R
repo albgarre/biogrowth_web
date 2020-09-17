@@ -170,6 +170,11 @@ server <- function(input, output) {
         
     })
     
+    output$static_fit_resHist <- renderPlot({
+        tibble(Residual = static_fit_results()$fit$residuals) %>%
+            ggplot() + geom_histogram(aes(Residual))
+    })
+    
     ## Cardinal fitting ------------------------------------------------
     
     ## Data input
