@@ -5,6 +5,8 @@ library(readxl)
 source("tableFileUI.R")
 source("tableFile.R")
 
+data("example_dynamic_growth")
+
 server <- function(input, output) {
     
     ## Static predictions -----------------------------------------------------
@@ -89,7 +91,8 @@ server <- function(input, output) {
     
     pred_micro_data <- callModule(tableFile, "pred_micro_data",
                                   default_data = tibble(time = c(0, 25, 50, 75, 100),
-                                                        logN = c(2, 2.5, 7, 8, 8))
+                                                        logN = c(2, 2.5, 7, 8, 8)
+                                                        )
     )
     
     static_fit_results <- eventReactive(input$button_static_fit, {
@@ -531,10 +534,10 @@ server <- function(input, output) {
         names(sec_models) <- my_factors
         
         
-        print("+++++")
-        print(sec_models)
-        print(primary_pars)
-        print(my_factors)
+        # print("+++++")
+        # print(sec_models)
+        # print(primary_pars)
+        # print(my_factors)
 
         
         predict_dynamic_growth(seq(0, input$dynPred_maxtime, length = 1000),
@@ -567,6 +570,270 @@ server <- function(input, output) {
                 theme(legend.title = element_blank()) +
             ylab("Value of gamma") + xlab("Time")
     })
+    
+    ## Dynamic fitting -------------------------------------------
+    
+    ## Data input
+    
+    dynFit_micro_data <- callModule(tableFile, "dynFit_micro_data",
+                                    # default_data = tibble(time = example_dynamic_growth$time,
+                                    #                       logN = example_dynamic_growth$logN)
+                                    default_data = tibble(time = c(0, 25, 50, 75, 100),
+                                                          logN = c(2, 2.5, 7, 8, 8)
+                                                          )
+                                    )
+    
+    dynFit_excelFile <- reactive({
+        validate(need(input$dynFit_excel_file, label = "Excel"))
+        input$dynFit_excel_file
+    })
+    
+    dynFit_excel_frame <- reactive({
+        read_excel(dynFit_excelFile()$datapath,
+                   sheet = input$dynFit_excel_sheet,
+                   skip = input$dynFit_excel_skip,
+                   col_types = "numeric")
+    })
+    
+    output$dynFit_plot_input <- renderPlot({
+        
+        dynFit_excel_frame() %>%
+            gather(var, value, -time) %>%
+            ggplot(aes(x = time, y = value)) +
+            geom_line() +
+            geom_point() +
+            facet_wrap("var", scales = "free_y") +
+            ylab("")
+        
+    })
+    
+    ## Dynamic secondary model selector
+    
+    dynFit_id_dynamic <- c() # so I can remove them later
+    
+    observeEvent(input$dynFit_update, {
+        
+        my_names <- dynFit_excel_frame() %>%
+            select(-time) %>%
+            names()
+        
+        # Remove old ones
+        
+        if (length(dynFit_id_dynamic) > 0) {
+            
+            for (each_id in dynFit_id_dynamic) {
+                removeUI(
+                    ## pass in appropriate div id
+                    selector = paste0('#', each_id)
+                )
+            }
+            
+            dynFit_id_dynamic <<- c()
+            
+        }
+        
+        # Insert new ones
+        
+        for (each_name in my_names) {
+            
+            id <- paste0('dynFit_', each_name)
+            
+            insertUI(
+                selector = '#dynFitPlaceholder',
+                ui = tags$div(
+                    tags$h3(paste("Condition:", each_name)), 
+                    selectInput(paste0(id, "_model"),
+                                "Model type",
+                                list(`Cardinal` = "CPM", Zwietering = "Zwietering")),
+                    fluidRow(
+                        column(6,
+                               numericInput(paste0(id, "_xmin"), "Xmin", 0)
+                        ),
+                        column(6,
+                               checkboxInput(paste0(id, "_xmin_fix"), "fixed?")
+                        )
+                    ),
+                    fluidRow(
+                        column(6,
+                               numericInput(paste0(id, "_xopt"), "Xopt", 37)
+                        ),
+                        column(6,
+                               checkboxInput(paste0(id, "_xopt_fix"), "fixed?")
+                        )
+                    ),
+                    fluidRow(
+                        column(6,
+                               numericInput(paste0(id, "_xmax"), "Xmax (only in cardinal model)", 45)
+                        ),
+                        column(6,
+                               checkboxInput(paste0(id, "_xmax_fix"), "fixed?")
+                        )
+                    ),
+                    fluidRow(
+                        column(6,
+                               numericInput(paste0(id, "_n"), "n", 1)
+                        ),
+                        column(6,
+                               checkboxInput(paste0(id, "_n_fix"), "fixed?")
+                        )
+                    ),
+                    tags$hr(),
+                    id = id
+                )
+            )
+            
+            dynFit_id_dynamic <<- c(dynFit_id_dynamic, id)
+        }
+        
+    })
+    
+    ## Model fitting
+    
+    dynFit_model <- eventReactive(input$dynFit_fitModel, {
+        
+        ## Extract model parameters
+        
+        my_factors <- dynFit_excel_frame() %>%
+            select(-time) %>%
+            names()
+        
+        sec_model_names <- c()
+        start <- list()
+        known_pars <- list()
+        
+        #- Primary model
+        
+        if (isTRUE(input$dynFit_muopt_fix)) {
+            known_pars$mu_opt <- input$dynFit_muopt
+        } else {
+            start$mu_opt <- input$dynFit_muopt
+        }
+        
+        if (isTRUE(input$dynFit_N0_fix)) {
+            known_pars$N0 <- input$dynFit_N0
+        } else {
+            start$N0 <- input$dynFit_N0
+        }
+        
+        if (isTRUE(input$dynFit_Nmax_fix)) {
+            known_pars$Nmax <- input$dynFit_Nmax
+        } else {
+            start$Nmax <- input$dynFit_Nmax
+        }
+        
+        if (isTRUE(input$dynFit_Q0_fix)) {
+            known_pars$Q0 <- input$dynFit_Q0
+        } else {
+            start$Q0 <- input$dynFit_Q0
+        }
+        
+        #- Secondary model
+        
+        for (i in 1:length(my_factors)) {
+            
+            factor_name <- my_factors[[i]]
+            factor_id <- dynFit_id_dynamic[[i]]
+            
+            model_id <- paste0(factor_id, "_model")
+            sec_model_names[factor_name] <- input[[model_id]]
+            
+            xmin_id <- paste0(factor_id, "_xmin")
+            
+            if (isTRUE(input[[paste0(xmin_id, "_fix")]])) {
+                known_pars[[paste0(factor_name, "_xmin")]] <- input[[xmin_id]]
+            } else {
+                start[[paste0(factor_name, "_xmin")]] <- input[[xmin_id]]
+            }
+            
+            xopt_id <- paste0(factor_id, "_xopt")
+            
+            if (isTRUE(input[[paste0(xopt_id, "_fix")]])) {
+                known_pars[[paste0(factor_name, "_xopt")]] <- input[[xopt_id]]
+            } else {
+                start[[paste0(factor_name, "_xopt")]] <- input[[xopt_id]]
+            }
+            
+            # start[[paste0(factor_name, "_xopt")]] <- input[[xopt_id]]
+            
+            xmax_id <- paste0(factor_id, "_xmax")
+            
+            if (isTRUE(input[[paste0(xmax_id, "_fix")]])) {
+                known_pars[[paste0(factor_name, "_xmax")]] <- input[[xmax_id]]
+            } else {
+                start[[paste0(factor_name, "_xmax")]] <- input[[xmax_id]]
+            }
+            
+            # start[[paste0(factor_name, "_xmax")]] <- input[[xmax_id]]
+            
+            n_id <- paste0(factor_id, "_n")
+            
+            if (isTRUE(input[[paste0(n_id, "_fix")]])) {
+                known_pars[[paste0(factor_name, "_n")]] <- input[[n_id]]
+            } else {
+                start[[paste0(factor_name, "_n")]] <- input[[n_id]]
+            }
+            
+            # start[[paste0(factor_name, "_n")]] <- input[[n_id]]
+            
+            if (input[[model_id]] == "Zwietering") {
+                start[[paste0(factor_name, "_xmax")]] <- NULL
+                known_pars[[paste0(factor_name, "_xmax")]] <- NULL
+            }
+            
+        }
+        
+        print("To fit:")
+        print(start)
+        print("")
+        print("Fixed")
+        print(known_pars)
+        print("Model names:")
+        print(sec_model_names)
+        
+        ## Fit the model
+        
+        if (input$dynFit_algorithm == "nlr") {
+            
+            out <- fit_dynamic_growth(dynFit_micro_data(),
+                                      dynFit_excel_frame(), 
+                                      start,
+                                      known_pars, sec_model_names)
+            
+        } else {
+            
+            out <- fit_MCMC_growth(dynFit_micro_data(),
+                                   dynFit_excel_frame(), 
+                                   start,
+                                   known_pars, sec_model_names,
+                                   niter = input$dynFit_niter)
+            
+        }
+        
+        out
+
+        
+    })
+    
+    output$dynFit_modelPlot <- renderPlot({
+        withProgress({
+            
+            if (input$dynFit_addFactor) {
+                plot(dynFit_model(),
+                     add_factor = input$dynFit_added_factor,
+                     label_y1 = input$dynFit_ylabel,
+                     label_y2 = input$dynFit_secylabel) + 
+                    xlab(input$dynFit_xlabel)
+            } else {
+                plot(dynFit_model()) + 
+                    xlab(input$dynFit_xlabel) +
+                    ylab(input$dynFit_ylabel)
+            }
+            
+        }, message = "Fitting the model")
+        
+    })
+    
+    
     
 }
 

@@ -7,7 +7,7 @@ body <- dashboardBody(
                 h2("Welcome tab")
                 ),
         
-        ## Static prediction
+        ## Static prediction -----------------------------------------------------------------
         
         tabItem(tabName = "st_prediction",
                 h2("Deterministic prediction"),
@@ -118,7 +118,7 @@ body <- dashboardBody(
                 )
                 ),
         
-        ## Dynamic prediction
+        ## Dynamic prediction --------------------------------------------------------------
         
         tabItem(tabName = "dyna_prediction",
                 fluidRow(
@@ -180,10 +180,7 @@ body <- dashboardBody(
                 fluidRow(
                     tableFileUI("pred_micro_data",
                                 inputBoxTitle = "Input Microbial counts",
-                                outputBoxTitle = "Microbial data",
-                                default_frame = data.frame(c(0, 5, 7.5, 2.5, 6, 8),
-                                                           c(1e6, 1e5, 15000, 800000, 30000, 1e3)
-                                )
+                                outputBoxTitle = "Microbial data"
                     )
                 ),
                 fluidRow(
@@ -246,13 +243,75 @@ body <- dashboardBody(
                     )
                 ),
         
-        ## Dynamic fit
+        ## Dynamic fit ----------------------------------------------
         
         tabItem(tabName = "dyna_fit",
-                h2("Model fitting under dynamic conditions")
+                fluidRow(
+                    tableFileUI("dynFit_micro_data",
+                                inputBoxTitle = "Input Microbial counts",
+                                outputBoxTitle = "Microbial data"
+                    )
+                ),
+                fluidRow(
+                    box(title = "Input environmental conditions", solidHeader = TRUE,
+                        status = "primary",
+                        fileInput("dynFit_excel_file", "Excel file"),
+                        textInput("dynFit_excel_sheet", "Sheet name", "Sheet1"),
+                        numericInput("dynFit_excel_skip", "Skip", 0)
+                    ),
+                    box(status = "primary",
+                        plotOutput("dynFit_plot_input")
+                    )
+                ),
+                fluidRow(
+                    box(title = "Primary model", solidHeader = TRUE,
+                        status = "primary",
+                        numericInput("dynFit_N0", "N0", 10, min = 0, width = "30%"),
+                        checkboxInput("dynFit_N0_fix", "known?", width = "30%"),
+                        tags$hr(),
+                        numericInput("dynFit_Q0", "Q0", 1e-3, min = 0, width = "30%"),
+                        checkboxInput("dynFit_Q0_fix", "known?", width = "30%"),
+                        tags$hr(),
+                        numericInput("dynFit_muopt", "mu_opt", .5, min = 0, width = "30%"),
+                        checkboxInput("dynFit_muopt_fix", "known?", width = "30%"),
+                        tags$hr(),
+                        numericInput("dynFit_Nmax", "Nmax", 8, min = 0, width = "30%"),
+                        checkboxInput("dynFit_Nmax_fix", "known?", width = "30%")
+                        ),
+                    box(title = "Secondary models", solidHeader = TRUE,
+                        status = "primary",
+                        actionButton("dynFit_update", "Update"),
+                        tags$div(id = 'dynFitPlaceholder')
+                        )
+                ),
+                fluidRow(
+                    box(title = "Fitting algorithm", solidHeader = TRUE,
+                        status = "primary",
+                        selectInput("dynFit_algorithm", "Algorithm",
+                                    list(`Non-linear regression`="nlr",
+                                         `MCMC` = "MCMC")),
+                        conditionalPanel(
+                            condition = "input.dynFit_algorithm == 'MCMC'",
+                            numericInput("dynFit_niter", "Number of iterations", 1000, 
+                                         min = 0, step = 1)
+                        ),
+                        tags$hr(),
+                        actionButton("dynFit_fitModel", "Fit model")
+                        ),
+                    box(title = "Fitted model", solidHeader = TRUE,
+                        status = "success",
+                        plotOutput("dynFit_modelPlot"),
+                        tags$hr(),
+                        checkboxInput("dynFit_addFactor", "Plot a factor?"),
+                        textInput("dynFit_added_factor", "What factor?", "temperature"),
+                        textInput("dynFit_xlabel", "Label of x-axis", "Time"),
+                        textInput("dynFit_ylabel", "Label of y-axis", "logN"),
+                        textInput("dynFit_secylabel", "Label of secondary axis", "temperature")
+                        )
+                )
                 ),
         
-        ## Cardinal fit
+        ## Cardinal fit ------------------------------------------------
         
         tabItem(tabName = "cardinal",
                 fluidRow(
