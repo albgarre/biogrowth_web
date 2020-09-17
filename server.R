@@ -369,13 +369,33 @@ server <- function(input, output) {
         ## Fit the model
         
         fit_secondary_growth(card_excel_frame(),
-                             this_p, known_pars, sec_model_names)
+                             this_p, known_pars, sec_model_names,
+                             transformation = input$card_transformation)
     })
     
     output$card_fit_results <- renderTable({
         aa <- card_gamma_fit() %>% summary()
         
         as_tibble(aa$par, rownames = "Parameter")
+        
+    })
+    
+    output$card_res_hist <- renderPlot({
+        
+        tibble(Residuals = card_gamma_fit()$fit_results$residuals) %>%
+            ggplot() + geom_histogram(aes(Residuals))
+        
+    })
+    
+    output$card_res_plot <- renderPlot({
+        
+        card_gamma_fit()$data %>%
+            mutate(res = card_gamma_fit()$fit_results$residuals
+                   ) %>%
+            ggplot(aes(x = mu, y = res)) + 
+                geom_point() +
+                geom_hline(yintercept = 0, linetype = 2, colour = "grey") +
+                geom_smooth(se = FALSE) 
         
     })
     

@@ -206,7 +206,8 @@ body <- dashboardBody(
         
         tabItem(tabName = "cardinal",
                 fluidRow(
-                    box(
+                    box(title = "Data input", solidHeader = TRUE,
+                        status = "primary",
                         fileInput("card_excel_file", "Excel file"),
                         textInput("card_excel_sheet", "Sheet name", "Sheet1"),
                         numericInput("card_excel_skip", "Skip", 0)
@@ -216,7 +217,8 @@ body <- dashboardBody(
                     )
                 ),
                 fluidRow(
-                    box(width = 12,
+                    box(width = 12, title = "Model definition", 
+                        solidHeader = TRUE, status = "primary",
                         actionButton("card_update", "Update"),
                         tags$hr(),
                         fluidRow(
@@ -229,14 +231,28 @@ body <- dashboardBody(
                             
                         ),
                         tags$div(id = 'cardPlaceholder') ,
+                        selectInput("card_transformation", "Transformation",
+                                    list(`Square root` = "sq", 
+                                         `Log transform` = "log", 
+                                         `No tranformation` = "none"),
+                                    width = "50%"
+                        ),
+                        tags$hr(),
                         actionButton("card_fitModel", "Fit model")
                     )
                     
                 ),
                 fluidRow(
-                    box(
+                    box(title = "Parameter estimates", status = "warning",
+                        solidHeader = TRUE,
                         tableOutput("card_fit_results")
-                    )
+                    ),
+                    box(title = "Residuals diagnostics", solidHeader = TRUE,
+                        status = "warning",
+                        plotOutput("card_res_plot"),
+                        tags$hr(),
+                        plotOutput("card_res_hist")
+                        )
                 )
                 )
     )
