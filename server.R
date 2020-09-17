@@ -399,6 +399,175 @@ server <- function(input, output) {
         
     })
     
+    
+    ## Dynamic prediction -----------------------------------------
+    
+    ## Data input
+    
+    dynPred_excelFile <- reactive({
+        validate(need(input$dynPred_excel_file, label = "Excel"))
+        input$dynPred_excel_file
+    })
+    
+    dynPred_excel_frame <- reactive({
+        read_excel(dynPred_excelFile()$datapath,
+                   sheet = input$dynPred_excel_sheet,
+                   skip = input$dynPred_excel_skip,
+                   col_types = "numeric")
+    })
+    
+    output$dynPred_plot_input <- renderPlot({
+        
+        dynPred_excel_frame() %>%
+            gather(var, value, -time) %>%
+            ggplot(aes(x = time, y = value)) +
+            geom_line() +
+            geom_point() +
+            facet_wrap("var", scales = "free_y") +
+            ylab("")
+        
+    })
+    
+    ## Dynamic secondary model selector
+    
+    dynPred_id_dynamic <- c() # so I can remove them later
+
+    observeEvent(input$dynPred_update, {
+
+        my_names <- dynPred_excel_frame() %>%
+            select(-time) %>%
+            names()
+
+        # Remove old ones
+
+        if (length(dynPred_id_dynamic) > 0) {
+
+            for (each_id in dynPred_id_dynamic) {
+                removeUI(
+                    ## pass in appropriate div id
+                    selector = paste0('#', each_id)
+                )
+            }
+
+            dynPred_id_dynamic <<- c()
+
+        }
+
+        # Insert new ones
+
+        for (each_name in my_names) {
+
+            id <- paste0('dynPred_', each_name)
+
+            insertUI(
+                selector = '#dynPredPlaceholder',
+                ui = tags$div(
+                    tags$h3(paste("Condition:", each_name)),
+                    selectInput(paste0(id, "_model"),
+                                "Model type",
+                                list(`Cardinal` = "CPM", Zwietering = "Zwietering")),
+                    
+                    numericInput(paste0(id, "_xmin"), "Xmin", 0),
+                    numericInput(paste0(id, "_xopt"), "Xopt", 37),
+                    numericInput(paste0(id, "_xmax"), "Xmax (only in cardinal model)", 45),
+                    numericInput(paste0(id, "_n"), "n", 1),
+                    
+                    tags$hr(),
+                    id = id
+                )
+            )
+
+            dynPred_id_dynamic <<- c(dynPred_id_dynamic, id)
+        }
+
+    })
+    
+    ## Model prediction
+    
+    dynPred_prediction <- eventReactive(input$dynPred_calculate, {
+        
+        ## Extract primary parameters
+        
+        primary_pars <- list(mu_opt = input$dynPred_muopt,
+                     Nmax = 10^input$dynPred_logNmax,
+                     N0 = 10^input$dynPred_logN0,
+                     Q0 = input$dynPred_Q0)
+        
+        
+        ## Extract secondary models
+        
+        my_factors <- dynPred_excel_frame() %>%
+            select(-time) %>%
+            names()
+        
+        sec_models <- list()
+
+        for (i in 1:length(my_factors)) {
+            
+            factor_name <- my_factors[[i]]
+            factor_id <- dynPred_id_dynamic[[i]]
+            
+            new_model <- list()
+            
+            model_id <- paste0(factor_id, "_model")
+            new_model$model <- input[[model_id]]
+
+            xmin_id <- paste0(factor_id, "_xmin")
+            new_model$xmin <- input[[xmin_id]]
+
+            xopt_id <- paste0(factor_id, "_xopt")
+            new_model$xopt <- input[[xopt_id]]
+
+            xmax_id <- paste0(factor_id, "_xmax")
+            new_model$xmax <- input[[xmax_id]]
+
+            n_id <- paste0(factor_id, "_n")
+            new_model$n <- input[[n_id]]
+            
+            sec_models[[i]] <- new_model
+
+        }
+
+        names(sec_models) <- my_factors
+        
+        
+        print("+++++")
+        print(sec_models)
+        print(primary_pars)
+        print(my_factors)
+
+        
+        predict_dynamic_growth(seq(0, input$dynPred_maxtime, length = 1000),
+                              dynPred_excel_frame(), primary_pars,
+                              sec_models)
+    })
+    
+    output$dynPred_plot_growth <- renderPlot({
+        
+        if (input$dynPred_addFactor) {
+            plot(dynPred_prediction(),
+                 add_factor = input$dynPred_added_factor,
+                 label_y1 = input$dynPred_ylabel,
+                 label_y2 = input$dynPred_secylabel) + 
+                xlab(input$dynPrec_xlabel)
+        } else {
+            plot(dynPred_prediction()) + 
+                xlab(input$dynPred_xlabel) +
+                ylab(input$dynPred_ylabel)
+        }
+        
+    })
+    
+    output$dynPred_gammaPlot <- renderPlot({
+        
+        dynPred_prediction()$gammas %>%
+            gather(var, gamma, -time) %>%
+            ggplot() +
+                geom_line(aes(x = time, y = gamma, colour = var)) +
+                theme(legend.title = element_blank()) +
+            ylab("Value of gamma") + xlab("Time")
+    })
+    
 }
 
 

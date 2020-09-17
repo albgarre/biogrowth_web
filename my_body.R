@@ -121,7 +121,57 @@ body <- dashboardBody(
         ## Dynamic prediction
         
         tabItem(tabName = "dyna_prediction",
-                h2("Predictions under dynamic conditions")
+                fluidRow(
+                    box(title = "Data input", solidHeader = TRUE,
+                        status = "primary",
+                        fileInput("dynPred_excel_file", "Excel file"),
+                        textInput("dynPred_excel_sheet", "Sheet name", "Sheet1"),
+                        numericInput("dynPred_excel_skip", "Skip", 0)
+                    ),
+                    box(status = "primary",
+                        plotOutput("dynPred_plot_input")
+                    )
+                ),
+                fluidRow(
+                    box(title = "Primary model",
+                        solidHeader = TRUE, status = "primary",
+                        numericInput("dynPred_muopt", "mu_opt", 0.5, min = 0),
+                        numericInput("dynPred_logNmax", "logNmax", 8),
+                        numericInput("dynPred_logN0", "logN0", 0),
+                        numericInput("dynPred_Q0", "Q0", 1e-3, min = 0),
+                        numericInput("dynPred_maxtime", "Total time", 50, min = 0)
+
+                    ),
+                    box(title = "Secondary model",
+                        solidHeader = TRUE, status = "primary",
+                        actionButton("dynPred_update", "Update"),
+                        tags$div(id = 'dynPredPlaceholder')
+                        )
+
+
+                ),
+                
+                fluidRow(
+                    box(title = "Prediction",
+                        solidHeader = TRUE, status = "success",
+                        actionButton("dynPred_calculate", "Calculate!"),
+                        tags$hr(),
+                        checkboxInput("dynPred_addFactor", "Plot a factor?"),
+                        textInput("dynPred_added_factor", "What factor?", "temperature"),
+                        textInput("dynPred_xlabel", "Label of x-axis", "Time"),
+                        textInput("dynPred_ylabel", "Label of y-axis", "logN"),
+                        textInput("dynPred_secylabel", "Label of secondary axis", "temperature")
+                        
+                    ),
+                    box(status = "success",
+                        tags$h3("Predicted growth"),
+                        plotOutput("dynPred_plot_growth"),
+                        tags$h3("Variation of the gamma factors"),
+                        plotOutput("dynPred_gammaPlot")
+                        
+                        )
+                )
+                
                 ),
         
         ## Static fit
