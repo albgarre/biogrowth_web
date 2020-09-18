@@ -12,7 +12,8 @@ body <- dashboardBody(
         tabItem(tabName = "st_prediction",
                 h2("Deterministic prediction"),
                 fluidRow(
-                    box(
+                    box(title = "Model definition", status = "primary",
+                        solidHeader = TRUE, collapsible = FALSE,
                         selectInput(
                             "modelStaticPrediction",
                             "Primary growth model",
@@ -33,23 +34,34 @@ body <- dashboardBody(
                                 numericInput("static_pred_C", "C", 6)
                             ),
                             numericInput("static_max_time", "Maximum time", 80, min = 0)
-                        )
+                        ),
+                        textInput("static_pred_simName", "Simulation name", "Growth condition I"),
+                        actionButton("static_pred_addSim", "Add/Edit Simulation"),
+                        actionButton("static_pred_cleanUp", "Clean plot")
                         
                         
                     ),
-                    box(
+                    box(title = "Model predictions", status = "success",
+                        solidHeader = TRUE,
                         plotOutput("plot_static_prediction"),
                         tags$hr(),
                         column(6,
-                               textInput("static_xaxis", "Label of x-axis", "Storage time"),
-                               checkboxInput("static_time_to_count", "Include time to log count")
+                               textInput("static_xaxis", "Label of x-axis", "Storage time")
+                               # checkboxInput("static_time_to_count", "Include time to log count")
                                ),
                         column(6,
-                               textInput("static_yaxis", "Label of y-axis", "Log microbial count"),
-                               numericInput("static_tgt_count", "Target count", 2)
+                               textInput("static_yaxis", "Label of y-axis", "Log microbial count")
+                               
                                )
 
                     )
+                ),
+                fluidRow(
+                    box(title = "Time to X log count", status = "success",
+                        solidHeader = TRUE,
+                        numericInput("static_tgt_count", "Target count", 2),
+                        tableOutput("static_timeToTable")
+                        )
                 ),
                 h2("Stochastic prediction"),
                 fluidRow(

@@ -11,10 +11,12 @@ server <- function(input, output) {
     
     ## Static predictions -----------------------------------------------------
     
-    static_prediction <- reactive({
+    static_prediction_list <- reactiveVal(list())
+    
+    observeEvent(input$static_pred_addSim, {
         
-        predict_isothermal_growth(input$modelStaticPrediction, 
-                                  seq(0, input$static_max_time, length = 1000), 
+        new_pred <- predict_isothermal_growth(input$modelStaticPrediction, 
+                                  seq(0, input$static_max_time, length = 100), 
                                   list(logN0 = input$static_pred_logN0,
                                        mu = input$static_pred_mu,
                                        lambda = input$static_pred_lambda,
@@ -22,25 +24,122 @@ server <- function(input, output) {
                                        C = input$static_pred_C)
         )
         
+        new_list <- static_prediction_list()
+        new_list[[input$static_pred_simName]] <- new_pred
+        
+        static_prediction_list(new_list)
+        
+        
+        # new_pred %>%
+        #         .$simulation %>%
+        #         mutate(sim = input$static_pred_simName)
+        # 
+        # old_frame <- static_prediction_frame()
+        # 
+        # print(old_frame)
+        # 
+        # if (is.null(old_frame)) {
+        #     
+        #     new_frame <- new_pred
+        #     
+        #     
+        # } else {
+        #     
+        #     new_frame <- bind_rows(old_frame, new_pred)
+        #     
+        # }
+        # 
+        # print(new_frame)
+        # 
+        # static_prediction_frame(new_frame)
+        
     })
+    
+    observeEvent(input$static_pred_cleanUp, {
+        # static_prediction_frame(NULL)
+        static_prediction_list(list())
+    })
+    
+    # static_prediction <- reactive({
+    #     
+        # predict_isothermal_growth(input$modelStaticPrediction, 
+        #                           seq(0, input$static_max_time, length = 1000), 
+        #                           list(logN0 = input$static_pred_logN0,
+        #                                mu = input$static_pred_mu,
+        #                                lambda = input$static_pred_lambda,
+        #                                logNmax = input$static_pred_logNmax,
+        #                                C = input$static_pred_C)
+        # )
+    #     
+    # })
     
     output$plot_static_prediction <- renderPlot({
         
-        p <- plot(static_prediction()) +
-            xlab(input$static_xaxis) +
-            ylab(input$static_yaxis)
-        
-        
-        if (input$static_time_to_count) {
+        if (length(static_prediction_list()) == 0) {
             
-            my_time <- time_to_logcount(static_prediction(), input$static_tgt_count)
+            return(ggplot() + geom_blank())
             
-            p <- p + geom_vline(xintercept = my_time, linetype = 2) +
-                geom_label(x = my_time, y = input$static_pred_logN0,
-                           label = round(my_time, 2))
         }
         
-        p
+        static_prediction_list() %>%
+            map(.,
+                ~.$simulation
+                ) %>%
+            imap_dfr(., 
+                     ~ mutate(.x, sim = .y)
+                     ) %>%
+            ggplot() + 
+                geom_line(aes(x = time, y = logN, colour = sim)) +
+                xlab(input$static_xaxis) +
+                ylab(input$static_yaxis) +
+                theme(legend.title = element_blank())
+        
+        # if (is.null(static_prediction_frame())) {
+        #     return(ggplot() + geom_blank())
+        # }
+        # 
+        # ggplot(static_prediction_frame()) +
+        #     geom_line(aes(x=time, y = logN, colour = sim)) +
+        #     xlab(input$static_xaxis) +
+        #     ylab(input$static_yaxis) +
+        #     theme(legend.title = element_blank())
+        
+        
+        
+        # p <- plot(static_prediction()) +
+        #     xlab(input$static_xaxis) +
+        #     ylab(input$static_yaxis)
+        # 
+        # 
+        # if (input$static_time_to_count) {
+        #     
+        #     my_time <- time_to_logcount(static_prediction(), input$static_tgt_count)
+        #     
+        #     p <- p + geom_vline(xintercept = my_time, linetype = 2) +
+        #         geom_label(x = my_time, y = input$static_pred_logN0,
+        #                    label = round(my_time, 2))
+        # }
+        # 
+        # p
+        
+    })
+    
+    output$static_timeToTable <- renderTable({
+        
+        if (length(static_prediction_list()) == 0) {
+            
+            return(tibble())
+            
+        }
+        
+        static_prediction_list() %>%
+            map(., ~ time_to_logcount(., input$static_tgt_count)) %>%
+            imap_dfr(.,
+                     ~ tibble(Model = .y, 
+                              `Target count` = input$static_tgt_count,
+                              Time = .x)
+                     )
+        
         
     })
     
