@@ -20,7 +20,8 @@ sidebar <- dashboardSidebar(
     sidebarMenu(
         id = "sidebar",
         menuItem("Welcome page", tabName = "welcome"),
-        menuItem("Static predictions", tabName = "st_prediction"),
+        menuItem("Static predictions (deterministic)", tabName = "st_prediction"),
+        menuItem("Static predictions (stochastic)", tabName = "stoc_prediction"),
         menuItem("Dynamic predictions", tabName = "dyna_prediction"),
         menuItem("Static fitting", tabName = "st_fit"),
         menuItem("Dynamic fitting", tabName = "dyna_fit"),

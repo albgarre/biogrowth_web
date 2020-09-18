@@ -647,16 +647,29 @@ server <- function(input, output) {
     output$dynPred_plot_growth <- renderPlot({
         
         if (input$dynPred_addFactor) {
-            plot(dynPred_prediction(),
+            p <- plot(dynPred_prediction(),
                  add_factor = input$dynPred_added_factor,
                  label_y1 = input$dynPred_ylabel,
                  label_y2 = input$dynPred_secylabel) + 
                 xlab(input$dynPrec_xlabel)
         } else {
-            plot(dynPred_prediction()) + 
+            p <- plot(dynPred_prediction()) + 
                 xlab(input$dynPred_xlabel) +
                 ylab(input$dynPred_ylabel)
         }
+        
+        if (input$dynPred_add_timeToX) {
+            
+            my_t <- time_to_logcount(dynPred_prediction(),
+                                     input$dynPred_tgt_count)
+            
+            p <- p + geom_vline(xintercept = my_t, linetype = 2) +
+                geom_label(x = my_t, y = input$dynPred_tgt_count,
+                           label = paste("t =", round(my_t, 1)))
+            
+        }
+        
+        p
         
     })
     

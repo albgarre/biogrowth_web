@@ -10,7 +10,6 @@ body <- dashboardBody(
         ## Static prediction -----------------------------------------------------------------
         
         tabItem(tabName = "st_prediction",
-                h2("Deterministic prediction"),
                 fluidRow(
                     box(title = "Model definition", status = "primary",
                         solidHeader = TRUE, collapsible = FALSE,
@@ -62,73 +61,80 @@ body <- dashboardBody(
                         numericInput("static_tgt_count", "Target count", 2),
                         tableOutput("static_timeToTable")
                         )
-                ),
-                h2("Stochastic prediction"),
-                fluidRow(
-                    box(
-                        selectInput(
-                            "modelStaticPredictionStoc",
-                            "Primary growth model",
-                            list(Baranyi = "Baranyi", 
-                                 `Modified Gompertz` = "modGompertz",
-                                 `Tri-linear` = "Trilinear")
-                        ),
-                        wellPanel(
-                            fluidRow(
-                                h4("log N0"),
-                                column(6,
-                                       numericInput("static_pred_mlogN0", "Mean", 0)
-                                ),
-                                column(6,
-                                       numericInput("static_pred_sdlogN0", "SD", .5, min = 0)
-                                )
-                            ),
-                            fluidRow(
-                                h4("sqrt(mu)"),
-                                column(6,
-                                       numericInput("static_pred_mmu", "Mean", 1)
-                                ),
-                                column(6,
-                                       numericInput("static_pred_sdmu", "SD", .1, min = 0)
-                                )
-                            ),
-                            fluidRow(
-                                h4("sqrt(lambda)"),
-                                column(6,
-                                       numericInput("static_pred_mlambda", "Mean", 5)
-                                ),
-                                column(6,
-                                       numericInput("static_pred_sdlambda", "SD", 1, min = 0)
-                                )
-                            ),
-                            fluidRow(
-                                h4("log Nmax"),
-                                column(6,
-                                       numericInput("static_pred_mlogNmax", "Mean", 6)
-                                ),
-                                column(6,
-                                       numericInput("static_pred_sdlogNmax", "SD", .5, min = 0)
-                                )
-                            ),
-                            numericInput("max_time_stoc_static", "Maximum time", value = 80, min = 0),
-                            numericInput("tgt_cont_stoc_static", "Target log microbial count", value = 4),
-                            numericInput("n_sims_static", "Number of simulations", value = 1000, min = 0)
-                        )
-                    ),
-                    box(
-                        plotOutput("plot_static_prediction_stoc"),
-                        column(6,
-                               textInput("static_xaxis_stoc", "Label of x-axis", "Storage time")
-                        ),
-                        column(6,
-                               textInput("static_yaxis_stoc", "Label of y-axis", "Log microbial count")
-                        ),
-                        tags$hr(),
-                        column(12, plotOutput("plot_static_timedistrib")),
-                        column(12, tableOutput("table_static_timedistrib"))
-                    )
                 )
                 ),
+        
+        ## Stochastic static prediction
+        
+        tabItem(
+            tabName = "stoc_prediction",
+            fluidRow(
+                box(title = "Model definition", status = "primary",
+                    solidHeader = TRUE,
+                    selectInput(
+                        "modelStaticPredictionStoc",
+                        "Primary growth model",
+                        list(Baranyi = "Baranyi", 
+                             `Modified Gompertz` = "modGompertz",
+                             `Tri-linear` = "Trilinear")
+                    ),
+                    wellPanel(
+                        fluidRow(
+                            h4("log N0"),
+                            column(6,
+                                   numericInput("static_pred_mlogN0", "Mean", 0)
+                            ),
+                            column(6,
+                                   numericInput("static_pred_sdlogN0", "SD", .5, min = 0)
+                            )
+                        ),
+                        fluidRow(
+                            h4("sqrt(mu)"),
+                            column(6,
+                                   numericInput("static_pred_mmu", "Mean", 1)
+                            ),
+                            column(6,
+                                   numericInput("static_pred_sdmu", "SD", .1, min = 0)
+                            )
+                        ),
+                        fluidRow(
+                            h4("sqrt(lambda)"),
+                            column(6,
+                                   numericInput("static_pred_mlambda", "Mean", 5)
+                            ),
+                            column(6,
+                                   numericInput("static_pred_sdlambda", "SD", 1, min = 0)
+                            )
+                        ),
+                        fluidRow(
+                            h4("log Nmax"),
+                            column(6,
+                                   numericInput("static_pred_mlogNmax", "Mean", 6)
+                            ),
+                            column(6,
+                                   numericInput("static_pred_sdlogNmax", "SD", .5, min = 0)
+                            )
+                        ),
+                        numericInput("max_time_stoc_static", "Maximum time", value = 80, min = 0),
+                        numericInput("tgt_cont_stoc_static", "Target log microbial count", value = 4),
+                        numericInput("n_sims_static", "Number of simulations", value = 1000, min = 0)
+                    )
+                ),
+                box(title = "Stochastic predictions", status = "success",
+                    solidHeader = TRUE,
+                    plotOutput("plot_static_prediction_stoc"),
+                    column(6,
+                           textInput("static_xaxis_stoc", "Label of x-axis", "Storage time")
+                    ),
+                    column(6,
+                           textInput("static_yaxis_stoc", "Label of y-axis", "Log microbial count")
+                    ),
+                    tags$hr(),
+                    column(12, plotOutput("plot_static_timedistrib")),
+                    column(12, tableOutput("table_static_timedistrib"))
+                )
+            )
+        ),
         
         ## Dynamic prediction --------------------------------------------------------------
         
@@ -159,8 +165,6 @@ body <- dashboardBody(
                         actionButton("dynPred_update", "Update"),
                         tags$div(id = 'dynPredPlaceholder')
                         )
-
-
                 ),
                 
                 fluidRow(
@@ -172,7 +176,9 @@ body <- dashboardBody(
                         textInput("dynPred_added_factor", "What factor?", "temperature"),
                         textInput("dynPred_xlabel", "Label of x-axis", "Time"),
                         textInput("dynPred_ylabel", "Label of y-axis", "logN"),
-                        textInput("dynPred_secylabel", "Label of secondary axis", "temperature")
+                        textInput("dynPred_secylabel", "Label of secondary axis", "temperature"),
+                        checkboxInput("dynPred_add_timeToX", "Add time to log count?"),
+                        numericInput("dynPred_tgt_count", "Target log count", 2)
                         
                     ),
                     box(status = "success",
