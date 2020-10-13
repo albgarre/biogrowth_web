@@ -4,7 +4,8 @@
 body <- dashboardBody(
     tabItems(
         tabItem(tabName = "welcome",
-                h2("Welcome tab")
+                # h2("Welcome tab")
+                withMathJax(includeMarkdown("welcome_page.md"))
                 ),
         
         ## Static prediction -----------------------------------------------------------------
@@ -51,7 +52,9 @@ body <- dashboardBody(
                         column(6,
                                textInput("static_yaxis", "Label of y-axis", "Log microbial count")
                                
-                               )
+                               ),
+                        tags$hr(),
+                        downloadButton("static_export", "Export simulations")
 
                     )
                 ),
@@ -116,12 +119,13 @@ body <- dashboardBody(
                             )
                         ),
                         numericInput("max_time_stoc_static", "Maximum time", value = 80, min = 0),
-                        numericInput("tgt_cont_stoc_static", "Target log microbial count", value = 4),
                         numericInput("n_sims_static", "Number of simulations", value = 1000, min = 0)
-                    )
+                    ),
+                    actionButton("stoc_calculate", "Calculate")
                 ),
                 box(title = "Stochastic predictions", status = "success",
                     solidHeader = TRUE,
+                    tags$h3("Stochastic growth curve"),
                     plotOutput("plot_static_prediction_stoc"),
                     column(6,
                            textInput("static_xaxis_stoc", "Label of x-axis", "Storage time")
@@ -129,7 +133,11 @@ body <- dashboardBody(
                     column(6,
                            textInput("static_yaxis_stoc", "Label of y-axis", "Log microbial count")
                     ),
+                    downloadButton("static_stoc_down", label = "Export quantiles"),
                     tags$hr(),
+                    tags$h3("Time to a microbial count"),
+                    numericInput("tgt_cont_stoc_static", "Target log microbial count", value = 4,
+                                 width = "50%"),
                     column(12, plotOutput("plot_static_timedistrib")),
                     column(12, tableOutput("table_static_timedistrib"))
                 )
@@ -144,7 +152,9 @@ body <- dashboardBody(
                         status = "primary",
                         fileInput("dynPred_excel_file", "Excel file"),
                         textInput("dynPred_excel_sheet", "Sheet name", "Sheet1"),
-                        numericInput("dynPred_excel_skip", "Skip", 0)
+                        numericInput("dynPred_excel_skip", "Skip", 0),
+                        tags$hr(),
+                        downloadLink("dynPred_download_example", "Download example")
                     ),
                     box(status = "primary",
                         plotOutput("dynPred_plot_input")
@@ -184,9 +194,11 @@ body <- dashboardBody(
                     box(status = "success",
                         tags$h3("Predicted growth"),
                         plotOutput("dynPred_plot_growth"),
+                        downloadButton("dynPred_down_growth", "Export growth curve"),
+                        tags$hr(),
                         tags$h3("Variation of the gamma factors"),
-                        plotOutput("dynPred_gammaPlot")
-                        
+                        plotOutput("dynPred_gammaPlot"),
+                        downloadButton("dynPred_down_gamma", "Export gamma curve")
                         )
                 )
                 
@@ -203,6 +215,7 @@ body <- dashboardBody(
                 ),
                 fluidRow(
                     box(title = "Model parameters",
+                        solidHeader = TRUE, status = "primary",
                         selectInput(
                             "model_static_fit",
                             "Primary growth model",
@@ -244,7 +257,11 @@ body <- dashboardBody(
                         
                         ),
                     box(title = "Model fit",
-                        plotOutput("plot_static_fit")
+                        solidHeader = TRUE, status = "success",
+                        plotOutput("plot_static_fit"),
+                        tags$hr(),
+                        textInput("static_fit_xlab", "x-axis label", "Time"),
+                        textInput("static_fit_ylab", "y-axis label", "logN")
                         )
                 ),
                 fluidRow(
@@ -275,7 +292,8 @@ body <- dashboardBody(
                         status = "primary",
                         fileInput("dynFit_excel_file", "Excel file"),
                         textInput("dynFit_excel_sheet", "Sheet name", "Sheet1"),
-                        numericInput("dynFit_excel_skip", "Skip", 0)
+                        numericInput("dynFit_excel_skip", "Skip", 0),
+                        downloadLink("dynFit_download_example", "Download example")
                     ),
                     box(status = "primary",
                         plotOutput("dynFit_plot_input")
@@ -293,7 +311,7 @@ body <- dashboardBody(
                         numericInput("dynFit_muopt", "mu_opt", .5, min = 0, width = "30%"),
                         checkboxInput("dynFit_muopt_fix", "known?", width = "30%"),
                         tags$hr(),
-                        numericInput("dynFit_Nmax", "Nmax", 8, min = 0, width = "30%"),
+                        numericInput("dynFit_Nmax", "Nmax", 1e8, min = 0, width = "30%"),
                         checkboxInput("dynFit_Nmax_fix", "known?", width = "30%")
                         ),
                     box(title = "Secondary models", solidHeader = TRUE,
@@ -311,7 +329,8 @@ body <- dashboardBody(
                         conditionalPanel(
                             condition = "input.dynFit_algorithm == 'MCMC'",
                             numericInput("dynFit_niter", "Number of iterations", 1000, 
-                                         min = 0, step = 1)
+                                         min = 0, step = 1),
+                            actionButton("dynFit_seed", "Reset seed")
                         ),
                         tags$hr(),
                         actionButton("dynFit_fitModel", "Fit model")
@@ -326,6 +345,24 @@ body <- dashboardBody(
                         textInput("dynFit_ylabel", "Label of y-axis", "logN"),
                         textInput("dynFit_secylabel", "Label of secondary axis", "temperature")
                         )
+                ),
+                fluidRow(
+                    box(title = "Parameter estimates", solidHeader = TRUE,
+                        status = "warning",
+                        tableOutput("dynFit_par_summary")
+                        ),
+                    box(title = "Fitting diagnostics", status = "warning",
+                        solidHeader = TRUE,
+                        tags$h3("Residual plot"),
+                        plotOutput("dynFit_resPlot"),
+                        conditionalPanel(
+                            condition = "input.dynFit_algorithm == 'MCMC'",
+                            tags$h3("Convergence of the Markov chain"),
+                            plotOutput("dynFit_MCMC_chain"),
+                            tags$h3("Pairs plot"),
+                            plotOutput("dynFit_MCMC_pairs")
+                        )
+                        )
                 )
                 ),
         
@@ -337,7 +374,9 @@ body <- dashboardBody(
                         status = "primary",
                         fileInput("card_excel_file", "Excel file"),
                         textInput("card_excel_sheet", "Sheet name", "Sheet1"),
-                        numericInput("card_excel_skip", "Skip", 0)
+                        numericInput("card_excel_skip", "Skip", 0),
+                        tags$hr(),
+                        downloadLink("card_download_example", "Download example")
                     ),
                     box(
                         plotOutput("card_plot_input")
@@ -376,8 +415,10 @@ body <- dashboardBody(
                     ),
                     box(title = "Residuals diagnostics", solidHeader = TRUE,
                         status = "warning",
+                        tags$h3("Residuals plot"),
                         plotOutput("card_res_plot"),
                         tags$hr(),
+                        tags$h3("Histogram of the residuals"),
                         plotOutput("card_res_hist")
                         )
                 )

@@ -1,6 +1,8 @@
 library(tidyverse)
 library(biogrowth)
 library(readxl)
+library(cowplot)
+library(FME)
 
 source("tableFileUI.R")
 source("tableFile.R")
@@ -28,31 +30,7 @@ server <- function(input, output) {
         new_list[[input$static_pred_simName]] <- new_pred
         
         static_prediction_list(new_list)
-        
-        
-        # new_pred %>%
-        #         .$simulation %>%
-        #         mutate(sim = input$static_pred_simName)
-        # 
-        # old_frame <- static_prediction_frame()
-        # 
-        # print(old_frame)
-        # 
-        # if (is.null(old_frame)) {
-        #     
-        #     new_frame <- new_pred
-        #     
-        #     
-        # } else {
-        #     
-        #     new_frame <- bind_rows(old_frame, new_pred)
-        #     
-        # }
-        # 
-        # print(new_frame)
-        # 
-        # static_prediction_frame(new_frame)
-        
+
     })
     
     observeEvent(input$static_pred_cleanUp, {
@@ -89,38 +67,11 @@ server <- function(input, output) {
                      ~ mutate(.x, sim = .y)
                      ) %>%
             ggplot() + 
-                geom_line(aes(x = time, y = logN, colour = sim)) +
+                geom_line(aes(x = time, y = logN, colour = sim), size = 1) +
                 xlab(input$static_xaxis) +
                 ylab(input$static_yaxis) +
+                theme_cowplot() +
                 theme(legend.title = element_blank())
-        
-        # if (is.null(static_prediction_frame())) {
-        #     return(ggplot() + geom_blank())
-        # }
-        # 
-        # ggplot(static_prediction_frame()) +
-        #     geom_line(aes(x=time, y = logN, colour = sim)) +
-        #     xlab(input$static_xaxis) +
-        #     ylab(input$static_yaxis) +
-        #     theme(legend.title = element_blank())
-        
-        
-        
-        # p <- plot(static_prediction()) +
-        #     xlab(input$static_xaxis) +
-        #     ylab(input$static_yaxis)
-        # 
-        # 
-        # if (input$static_time_to_count) {
-        #     
-        #     my_time <- time_to_logcount(static_prediction(), input$static_tgt_count)
-        #     
-        #     p <- p + geom_vline(xintercept = my_time, linetype = 2) +
-        #         geom_label(x = my_time, y = input$static_pred_logN0,
-        #                    label = round(my_time, 2))
-        # }
-        # 
-        # p
         
     })
     
@@ -143,23 +94,39 @@ server <- function(input, output) {
         
     })
     
+    output$static_export <- downloadHandler(
+        filename = "growth-curve.csv",
+        content = function(file) {
+            
+            static_prediction_list() %>%
+                map(., ~ .$simulation) %>%
+                imap_dfr(., ~ mutate(.x, simulation = .y)) %>%
+                write_excel_csv(., path = file)
+            # write_excel_csv(static_prediction_list(), path = file)
+            
+        }
+    )
+    
     ## Stochastic static predictions -------------------------------------------------
     
-    static_prediction_stoc <- reactive({
-        
-        predict_stochastic_growth(input$modelStaticPredictionStoc, 
-                                  seq(0, input$max_time_stoc_static, length = 100), 
-                                  input$n_sims_static,
-                                  mean_logN0 = input$static_pred_mlogN0, 
-                                  sd_logN0 = input$static_pred_sdlogN0,
-                                  mean_sqmu = input$static_pred_mmu,
-                                  sd_sqmu = input$static_pred_sdmu,
-                                  mean_sqlambda = input$static_pred_mlambda, 
-                                  sd_sqlambda = input$static_pred_sdlambda,
-                                  mean_logNmax = input$static_pred_mlogNmax,
-                                  sd_logNmax = input$static_pred_sdlogNmax)
-        
-    })
+    static_prediction_stoc <- eventReactive(input$stoc_calculate, withProgress(
+        message = "Calculation in progress",
+        {
+            
+            predict_stochastic_growth(input$modelStaticPredictionStoc, 
+                                      seq(0, input$max_time_stoc_static, length = 100), 
+                                      input$n_sims_static,
+                                      mean_logN0 = input$static_pred_mlogN0, 
+                                      sd_logN0 = input$static_pred_sdlogN0,
+                                      mean_sqmu = input$static_pred_mmu,
+                                      sd_sqmu = input$static_pred_sdmu,
+                                      mean_sqlambda = input$static_pred_mlambda, 
+                                      sd_sqlambda = input$static_pred_sdlambda,
+                                      mean_logNmax = input$static_pred_mlogNmax,
+                                      sd_logNmax = input$static_pred_sdlogNmax)
+            
+        }) 
+        )
     
     
     static_time_distrib <- reactive({
@@ -183,8 +150,18 @@ server <- function(input, output) {
     
     output$table_static_timedistrib <- renderTable({
         
-        static_time_distrib()$summary
+        static_time_distrib()$summary %>%
+            set_names("Mean", "Standard error", "Median", "Q10", "Q90")
     })
+    
+    output$static_stoc_down <- downloadHandler(
+        filename = "stochastic-growth.csv",
+        content = function(file) {
+            
+            write_excel_csv(static_prediction_stoc()$quantiles, path = file)
+            
+        }
+    )
     
     ## Static fitting -----------------------------------------------------
     
@@ -249,14 +226,17 @@ server <- function(input, output) {
     })
     
     output$plot_static_fit <- renderPlot({
-        static_fit_results() %>% plot()
+        static_fit_results() %>%
+            plot() + xlab(input$static_fit_xlab) + ylab(input$static_fit_ylab)
     })
     
     output$static_fit_par <- renderTable({
         
         summary(static_fit_results())$par %>%
             as_tibble(rownames = "Parameter") %>%
-            select(Parameter, Estimate, `Std. Error`)
+            select(Parameter, Estimate, `Std. Error`) %>%
+            mutate(`CI 95% left` = Estimate - 1.96*`Std. Error`,
+                   `CI 95% right` = Estimate + 1.96*`Std. Error`)
         
     })
     
@@ -276,6 +256,13 @@ server <- function(input, output) {
         tibble(Residual = static_fit_results()$fit$residuals) %>%
             ggplot() + geom_histogram(aes(Residual))
     })
+    
+    # output$static_fit_download_example <- downloadHandler(
+    #     filename = "example_dyna.xlsx",
+    #     content = function(file) {
+    #         file.copy("example_dyna.xlsx", file)
+    #     }
+    # )
     
     ## Cardinal fitting ------------------------------------------------
     
@@ -303,6 +290,13 @@ server <- function(input, output) {
             xlab("")
         
     })
+    
+    output$card_download_example <- downloadHandler(
+        filename = "example_cardinal.xlsx",
+        content = function(file) {
+            file.copy("example_cardinal.xlsx", file)
+        }
+    )
     
     ## Dynamic secondary model selector
     
@@ -478,7 +472,11 @@ server <- function(input, output) {
     output$card_fit_results <- renderTable({
         aa <- card_gamma_fit() %>% summary()
         
-        as_tibble(aa$par, rownames = "Parameter")
+        aa$par %>%
+            as_tibble(rownames = "Parameter") %>%
+            select(Parameter, Estimate, `Std. Error`) %>%
+            mutate(`CI 95% left` = Estimate - 1.96*`Std. Error`,
+                   `CI 95% right` = Estimate + 1.96*`Std. Error`)
         
     })
     
@@ -529,6 +527,13 @@ server <- function(input, output) {
             ylab("")
         
     })
+    
+    output$dynPred_download_example <- downloadHandler(
+        filename = "example_dyna.xlsx",
+        content = function(file) {
+            file.copy("example_dyna.xlsx", file)
+        }
+    )
     
     ## Dynamic secondary model selector
     
@@ -651,7 +656,7 @@ server <- function(input, output) {
                  add_factor = input$dynPred_added_factor,
                  label_y1 = input$dynPred_ylabel,
                  label_y2 = input$dynPred_secylabel) + 
-                xlab(input$dynPrec_xlabel)
+                xlab(input$dynPred_xlabel)
         } else {
             p <- plot(dynPred_prediction()) + 
                 xlab(input$dynPred_xlabel) +
@@ -668,7 +673,6 @@ server <- function(input, output) {
                            label = paste("t =", round(my_t, 1)))
             
         }
-        
         p
         
     })
@@ -679,9 +683,29 @@ server <- function(input, output) {
             gather(var, gamma, -time) %>%
             ggplot() +
                 geom_line(aes(x = time, y = gamma, colour = var)) +
+                theme_cowplot() +
                 theme(legend.title = element_blank()) +
-            ylab("Value of gamma") + xlab("Time")
+                ylab("Value of gamma") + xlab("Time") 
+            
     })
+    
+    output$dynPred_down_growth <- downloadHandler(
+        filename = "dynamic-growth-curve.csv",
+        content = function(file) {
+            
+            write_excel_csv(dynPred_prediction()$simulation, path = file)
+            
+        }
+    )
+    
+    output$dynPred_down_gamma <- downloadHandler(
+        filename = "dynamic-gamma-curve.csv",
+        content = function(file) {
+        
+            write_excel_csv(dynPred_prediction()$gammas, path = file)
+            
+        }
+    )
     
     ## Dynamic fitting -------------------------------------------
     
@@ -718,6 +742,13 @@ server <- function(input, output) {
             ylab("")
         
     })
+    
+    output$dynFit_download_example <- downloadHandler(
+        filename = "example_dyna_env.xlsx",
+        content = function(file) {
+            file.copy("example_dyna_env.xlsx", file)
+        }
+    )
     
     ## Dynamic secondary model selector
     
@@ -896,7 +927,6 @@ server <- function(input, output) {
         
         print("To fit:")
         print(start)
-        print("")
         print("Fixed")
         print(known_pars)
         print("Model names:")
@@ -908,8 +938,11 @@ server <- function(input, output) {
             
             out <- fit_dynamic_growth(dynFit_micro_data(),
                                       dynFit_excel_frame(), 
-                                      start,
-                                      known_pars, sec_model_names)
+                                      starting_point = start,
+                                      known_pars = known_pars, 
+                                      sec_model_names)
+            
+            print(out)
             
         } else {
             
@@ -943,6 +976,73 @@ server <- function(input, output) {
             
         }, message = "Fitting the model")
         
+    })
+    
+    output$dynFit_par_summary <- renderTable({
+        
+        my_model <- dynFit_model()
+        
+        if (is.FitDynamicGrowth(my_model)) {  # nlr fit
+            
+            summary(my_model)$par %>%
+                as_tibble(rownames = "Parameter") %>%
+                select(Parameter, Estimate, `Std. Error`) %>%
+                mutate(`CI 95% left` = Estimate - 1.96*`Std. Error`,
+                       `CI 95% right` = Estimate + 1.96*`Std. Error`)
+            
+        } else {  # MCMC fit
+            summary(my_model) %>%
+                as_tibble(rownames = "Index")
+        }
+        
+        
+    })
+    
+    output$dynFit_resPlot <- renderPlot({
+        
+        my_model <- dynFit_model()
+        
+        if (is.FitDynamicGrowth(my_model)) {  # nlr fit
+            
+            my_model$data %>%
+                mutate(res = my_model$fit_results$residuals) %>%
+                ggplot(aes(x = time, y = res)) +
+                geom_point() +
+                geom_smooth() +
+                geom_hline(yintercept = 0, linetype = 2) +
+                xlab("Time") + ylab("Residual")
+            
+        } else {  # MCMC fit
+            
+            my_cost <- my_model$best_prediction$simulation %>%
+                select(time, logN) %>%
+                as.data.frame() %>%
+                modCost(model = ., 
+                        obs = as.data.frame(my_model$data))
+            
+            ggplot(my_cost$residuals, aes(x = x, y = res)) +
+                geom_point() +
+                geom_smooth() +
+                geom_hline(yintercept = 0, linetype = 2) +
+                xlab("Time") + ylab("Residual")
+            
+        }
+
+    })
+    
+    output$dynFit_MCMC_chain <- renderPlot({
+        
+        plot(dynFit_model()$fit_results)
+        
+    })
+    
+    output$dynFit_MCMC_pairs <- renderPlot({
+        pairs(dynFit_model()$fit_results)
+    })
+    
+    observeEvent(input$dynFit_seed, {
+        print("Seed back to normal")
+        set.seed(12412)
     })
     
     
