@@ -253,8 +253,54 @@ server <- function(input, output) {
     })
     
     output$static_fit_resHist <- renderPlot({
-        tibble(Residual = static_fit_results()$fit$residuals) %>%
-            ggplot() + geom_histogram(aes(Residual))
+        
+        # tibble(Residual = static_fit_results()$fit$residuals) %>%
+            # ggplot() + geom_histogram(aes(Residual))
+        
+        aa <- tibble(res = static_fit_results()$fit$residuals)
+        
+        ggplot(aa, aes(x = res)) + 
+            geom_histogram(aes(y = ..density..)) + 
+            geom_function(fun = dnorm, args = list(mean = mean(aa$res), sd = sd(aa$res)),
+                          linetype = 2, colour = "blue", size = 1) +
+            xlab("Residual") + 
+            ylab("Frequency")
+        
+    })
+    
+    output$static_fit_residual_table <- renderTable(digits = 3, {
+        
+        n_par <- length(static_fit_results()$starting_point)
+        n_dat <- nrow(static_fit_results()$data)
+        
+        tibble(res = static_fit_results()$fit$residuals,
+               res2 = res^2) %>%
+            summarize(ME = mean(res, na.rm = TRUE),
+                      MSE = mean(res2, na.rm = TRUE)
+            ) %>%
+            mutate(RMSE = sqrt(MSE),
+                   SER = sqrt(MSE*n_dat/(n_dat - n_par)),
+                   Bf = 10^ME,
+                   Af = 10^RMSE,
+                   df = n_dat - n_par
+            )
+        
+    })
+    
+    output$static_fit_shapiro <- renderText({
+        
+        test_res <- shapiro.test(static_fit_results()$fit$residuals)
+        
+        p_val <- test_res$p.value
+        
+        if (p_val < 0.05) {
+            paste("There is enough evidence to state that residuals are not normally distributed; p-value =",
+                  round(p_val, 3))
+        } else {
+            paste("There is NOT enough evidence to state that residuals are not normally distributed; p-value =",
+                  round(p_val, 3))
+        }
+        
     })
     
     # output$static_fit_download_example <- downloadHandler(
@@ -482,20 +528,107 @@ server <- function(input, output) {
     
     output$card_res_hist <- renderPlot({
         
-        tibble(Residuals = card_gamma_fit()$fit_results$residuals) %>%
-            ggplot() + geom_histogram(aes(Residuals))
+        # tibble(Residuals = card_gamma_fit()$fit_results$residuals) %>%
+        #     ggplot() + geom_histogram(aes(Residuals))
+        
+        aa <- tibble(res = card_gamma_fit()$fit_results$residuals)
+        
+        ggplot(aa, aes(x = res)) + 
+            geom_histogram(aes(y = ..density..)) + 
+            geom_function(fun = dnorm, args = list(mean = mean(aa$res), sd = sd(aa$res)),
+                          linetype = 2, colour = "blue", size = 1) +
+            xlab("Residual") + 
+            ylab("Frequency")
         
     })
     
     output$card_res_plot <- renderPlot({
         
-        card_gamma_fit()$data %>%
+        # Residual vs observation
+        
+        p1 <- card_gamma_fit()$data %>%
             mutate(res = card_gamma_fit()$fit_results$residuals
                    ) %>%
             ggplot(aes(x = mu, y = res)) + 
-                geom_point() +
-                geom_hline(yintercept = 0, linetype = 2, colour = "grey") +
-                geom_smooth(se = FALSE) 
+            geom_point() +
+            geom_hline(yintercept = 0, linetype = 2, colour = "grey") +
+            geom_smooth(se = FALSE) +
+            xlab("Observed growth rate") + 
+            ylab("Residual")   
+        
+        # Prediction vs observation
+        
+        aa <- card_gamma_fit()$data %>%
+            mutate(res = card_gamma_fit()$fit_results$residuals)
+        
+        out <- if (card_gamma_fit()$transformation == "sq") {
+            
+            aa %>% 
+                select(observed = sq_mu, res)
+                # mutate(mu_pred = (sq_mu + res)^2)
+            
+        } else if (card_gamma_fit()$transformation == "none") {
+            
+            aa %>%
+                select(observed = mu, res) 
+                # mutate(mu_pred = mu + res)
+            
+        } else if (card_gamma_fit()$transformation == "log") {
+            
+            aa %>%
+                select(observed = log_mu, res)
+                # mutate(mu_pred = 10^(log_mu + res))
+        }
+        
+        p2 <- out %>%
+            mutate(predicted = observed + res) %>%
+            ggplot(aes(x = observed, y = predicted)) +
+            geom_point() +
+            geom_abline(slope = 1, intercept = 0, linetype = 2) +
+            geom_smooth(method = "lm", se = FALSE, colour = "grey") +
+            xlab("Observed growth rate (same scale as fitting)") +
+            ylab("Predicted growth rate (same scale as fitting)")
+            
+        # p2 <- ggplot(out) + 
+        #     geom_point(aes(x = mu_pred, y = mu)) + 
+        #     xlab("Predicted growth rate") + ylab("Observed growth rate")
+        
+        plot_grid(p1, p2, nrow = 1)
+        
+    })
+    
+    output$card_shapiro <- renderText({
+        
+        test_res <- shapiro.test(card_gamma_fit()$fit_results$residuals)
+        
+        p_val <- test_res$p.value
+        
+        if (p_val < 0.05) {
+            paste("There is enough evidence to state that residuals are not normally distributed; p-value =",
+                  round(p_val, 3))
+        } else {
+            paste("There is NOT enough evidence to state that residuals are not normally distributed; p-value =",
+                  round(p_val, 3))
+        }
+        
+    })
+    
+    output$card_residual_table <- renderTable(digits = 3, {
+        
+        n_par <- length(card_gamma_fit()$fit_results$par)
+        n_dat <- nrow(card_gamma_fit()$data)
+        
+        tibble(res = card_gamma_fit()$fit_results$residuals,
+               res2 = res^2) %>%
+            summarize(ME = mean(res, na.rm = TRUE),
+                      MSE = mean(res2, na.rm = TRUE)
+            ) %>%
+            mutate(RMSE = sqrt(MSE),
+                   SER = sqrt(MSE*n_dat/(n_dat - n_par)),
+                   Bf = 10^ME,
+                   Af = 10^RMSE,
+                   df = n_dat - n_par
+            )
         
     })
     
@@ -959,6 +1092,8 @@ server <- function(input, output) {
         
     })
     
+    ## Output of the results
+    
     output$dynFit_modelPlot <- renderPlot({
         withProgress({
             
@@ -998,6 +1133,49 @@ server <- function(input, output) {
         
     })
     
+    output$dynFit_residualTable <- renderTable(digits = 3, {
+        
+        my_model <- dynFit_model()
+        
+        if (is.FitDynamicGrowth(my_model)) {  # nlr fit
+            
+            n_par <- length(my_model$fit_results$par)
+            n_dat <- nrow(my_model$data)
+            
+            res <- my_model$data %>%
+                mutate(res = my_model$fit_results$residuals) %>%
+                pull(res) 
+            
+
+        } else {  # MCMC fit
+            
+            n_par <- ncol(my_model$fit_results$par)
+            n_dat <- nrow(my_model$data)
+            
+            res <- my_model$best_prediction$simulation %>%
+                select(time, logN) %>%
+                as.data.frame() %>%
+                modCost(model = ., 
+                        obs = as.data.frame(my_model$data)) %>%
+                .$residuals %>%
+                .$res
+
+        }
+        
+        tibble(res = res,
+               res2 = res^2) %>%
+            summarize(ME = mean(res, na.rm = TRUE),
+                      MSE = mean(res2, na.rm = TRUE)
+            ) %>%
+            mutate(RMSE = sqrt(MSE),
+                   SER = sqrt(MSE*n_dat/(n_dat - n_par)),
+                   Bf = 10^ME,
+                   Af = 10^RMSE,
+                   df = n_dat - n_par
+            )
+        
+    })
+    
     output$dynFit_resPlot <- renderPlot({
         
         my_model <- dynFit_model()
@@ -1028,6 +1206,76 @@ server <- function(input, output) {
             
         }
 
+    })
+    
+    output$dynFit_resHist <- renderPlot({
+        
+        
+        my_model <- dynFit_model()
+        
+        res <- if (is.FitDynamicGrowth(my_model)) {  # nlr fit
+            
+            my_model$data %>%
+                mutate(res = my_model$fit_results$residuals) %>%
+                pull(res) 
+            
+        } else {  # MCMC fit
+            
+            my_model$best_prediction$simulation %>%
+                select(time, logN) %>%
+                as.data.frame() %>%
+                modCost(model = ., 
+                        obs = as.data.frame(my_model$data)) %>%
+                .$residuals %>%
+                .$res
+
+        }
+        
+        aa <- tibble(res = res)
+        
+        ggplot(aa, aes(x = res)) + 
+            geom_histogram(aes(y = ..density..)) + 
+            geom_function(fun = dnorm, args = list(mean = mean(aa$res), sd = sd(aa$res)),
+                          linetype = 2, colour = "blue", size = 1) +
+            xlab("Residual") + 
+            ylab("Frequency")
+        
+    }) 
+    
+    output$dynFit_shapiro <- renderText({
+        
+        my_model <- dynFit_model()
+        
+        res <- if (is.FitDynamicGrowth(my_model)) {  # nlr fit
+            
+            my_model$data %>%
+                mutate(res = my_model$fit_results$residuals) %>%
+                pull(res) 
+            
+        } else {  # MCMC fit
+            
+            my_cost <- my_model$best_prediction$simulation %>%
+                select(time, logN) %>%
+                as.data.frame() %>%
+                modCost(model = ., 
+                        obs = as.data.frame(my_model$data)) %>%
+                .$residuals %>%
+                .$res
+            
+        }
+        
+        test_res <- shapiro.test(res)
+        
+        p_val <- test_res$p.value
+        
+        if (p_val < 0.05) {
+            paste("There is enough evidence to state that residuals are not normally distributed; p-value =",
+                  round(p_val, 3))
+        } else {
+            paste("There is NOT enough evidence to state that residuals are not normally distributed; p-value =",
+                  round(p_val, 3))
+        }
+        
     })
     
     output$dynFit_MCMC_chain <- renderPlot({

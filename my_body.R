@@ -267,13 +267,20 @@ body <- dashboardBody(
                 fluidRow(
                     box(title = "Fitted parameters", status = "warning",
                         solidHeader = TRUE, collapsible = TRUE,
-                        tableOutput("static_fit_par")
+                        tableOutput("static_fit_par"),
+                        tags$hr(),
+                        tableOutput("static_fit_residual_table")
                     ),
                     box(title = "Fit diagnostics", status = "warning",
                         solidHeader = TRUE, collapsible = TRUE,
+                        tags$h3("Residual plot"),
                         plotOutput("static_fit_residual"),
                         tags$hr(),
-                        plotOutput("static_fit_resHist")
+                        tags$h3("Histogram of the residuals"),
+                        plotOutput("static_fit_resHist"),
+                        tags$hr(),
+                        tags$h3("Shapiro-Wilk test of the residuals"),
+                        verbatimTextOutput("static_fit_shapiro")
                         )
                     )
                 ),
@@ -349,12 +356,19 @@ body <- dashboardBody(
                 fluidRow(
                     box(title = "Parameter estimates", solidHeader = TRUE,
                         status = "warning",
-                        tableOutput("dynFit_par_summary")
+                        tableOutput("dynFit_par_summary"),
+                        tags$hr(),
+                        tableOutput("dynFit_residualTable")
                         ),
                     box(title = "Fitting diagnostics", status = "warning",
                         solidHeader = TRUE,
                         tags$h3("Residual plot"),
                         plotOutput("dynFit_resPlot"),
+                        tags$hr(),
+                        tags$h3("Histogram of the residuals"),
+                        plotOutput("dynFit_resHist"),
+                        tags$h3("Shapiro-Wilk test of the residuals"),
+                        verbatimTextOutput("dynFit_shapiro"),
                         conditionalPanel(
                             condition = "input.dynFit_algorithm == 'MCMC'",
                             tags$h3("Convergence of the Markov chain"),
@@ -411,7 +425,9 @@ body <- dashboardBody(
                 fluidRow(
                     box(title = "Parameter estimates", status = "warning",
                         solidHeader = TRUE,
-                        tableOutput("card_fit_results")
+                        tableOutput("card_fit_results"),
+                        tags$hr(),
+                        tableOutput("card_residual_table")
                     ),
                     box(title = "Residuals diagnostics", solidHeader = TRUE,
                         status = "warning",
@@ -419,7 +435,10 @@ body <- dashboardBody(
                         plotOutput("card_res_plot"),
                         tags$hr(),
                         tags$h3("Histogram of the residuals"),
-                        plotOutput("card_res_hist")
+                        plotOutput("card_res_hist"),
+                        tags$hr(),
+                        tags$h3("Shapiro-Wilk test of residuals"),
+                        verbatimTextOutput("card_shapiro")
                         )
                 )
                 )
