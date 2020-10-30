@@ -1,15 +1,19 @@
-Biogrowth web is an interface to the functions for modelling microbial
-growth included in the biogrowth R package, which is publicly in the
-Comprehensive R Archive Network (CRAN) under the following link:
+Biogrowth
+---------
 
-> not yet
+This application serves as an interface to the functions for modelling
+microbial growth included in the biogrowth R package from the
+Comprehensive R Archive Network (CRAN):
 
-It includes the following features:
+> <a href="https://CRAN.R-project.org/package=biogrowth" class="uri">https://CRAN.R-project.org/package=biogrowth</a>
+
+The application is divided in modules that can be accessed form the left
+panel. It includes the following features:
 
 -   Prediction of microbial growth under static conditions.
+-   Stochastic growth prediction under static conditions.
 -   Prediction of microbial growth under dynamic conditions considering
     an arbitrary number of environmental factors.
--   Stochastic growth prediction under static conditions.
 -   Model fitting of primary growth model to data gathered under static
     conditions.
 -   One-step fitting of primary and secondary growth models to data
@@ -26,6 +30,26 @@ It includes the following features:
     of the predicted/fitted curve with respect to the experimental data.
 -   Output of the adjusted curve as a text file.
 
-Calculations are done according to usual methods in predictive
-microbiology. Please check the user manual (on the left) for additional
-details.
+All the calculations are done according to usual methods in predictive
+microbiology. Please check the user manual (also on the left panel) for
+additional details.
+
+Please note that the application uses the GitHub version of the
+biogrowth package
+(<a href="https://github.com/albgarre/biogrowth_web" class="uri">https://github.com/albgarre/biogrowth_web</a>),
+which is more updated than the CRAN version. Hence, the calculations may
+vary slightly with respect to those of the package.
+
+Contact
+-------
+
+The application has been developed within the Laboratory of Food
+Microbiology of Wageningen University & Research. For bug reports,
+please use the GitHub page of the application:
+
+> <a href="https://github.com/albgarre/biogrowth_web" class="uri">https://github.com/albgarre/biogrowth_web</a>
+
+For other questions or comments, please contact:
+
+> Alberto Garre at
+> <a href="mailto:alberto.garreperez@wur.nl" class="email">alberto.garreperez@wur.nl</a>
