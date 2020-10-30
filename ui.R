@@ -4,6 +4,7 @@
 options(shiny.reactlog=TRUE) 
 
 library(shiny)
+library(shinyBS)
 library(shinydashboard)
 library(rhandsontable)
 

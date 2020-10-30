@@ -9,7 +9,7 @@ source("tableFile.R")
 
 data("example_dynamic_growth")
 
-server <- function(input, output) {
+server <- function(input, output, session) {
     
     ## Static predictions -----------------------------------------------------
     
@@ -74,6 +74,17 @@ server <- function(input, output) {
                 theme(legend.title = element_blank())
         
     })
+    
+    addPopover(session, "plot_static_prediction",
+               "Growth curves under static conditions",
+               paste("This plot shows the predicted growth curves for the models defined.",
+                     "The lines are coloured according to the names you have defined.",
+                     "To edit any line, you just have to redefine model parameters and use the same name.",
+                     "Note that the validity of the predictions depends on the validity of the model parameters.",
+                     "Also, these predictions (in principle) are only valid under static environmental conditions.",
+                     sep = " "),
+               trigger = "click"
+               )
     
     output$static_timeToTable <- renderTable({
         
@@ -142,11 +153,37 @@ server <- function(input, output) {
         
     )
     
+    addPopover(session, "plot_static_prediction_stoc",
+               "Stochastic growth curves under static conditions",
+               paste("This plot shows the prediction intervals according to the variation in the model parameters.",
+                     "The solid line represents the median of the simulations.",
+                     "The two dashed areas represent the area between the 10th and 90th, and 5th and 95th intervals.",
+                     "The intervals are estimated by forward propagation using Monte Carlo simulations.",
+                     "It is advised to repeat the calculations for with the same number of simulations. If the results vary, the number of simulations should be increased.",
+                     "Note that the simulations are valid only for static conditions.",
+                     "Also be mindful about what the variation of the parameters represent.",
+                     sep = " "),
+               trigger = "click", placement = "left"
+    )
+    
     output$plot_static_timedistrib <- renderPlot({
         
         plot(static_time_distrib())
         
     })
+    
+    addPopover(session, "plot_static_timedistrib",
+               "Distributions of time to reach the selected microbial count",
+               paste("This plot shows an estimation of the treatment time needed to reach some microbial count",
+                     "Because simulations are stochastic, the result is a probability distribution according to the variation in the model parameters",
+                     "The distribution is estimated using forward propagation with Monte Carlo simulations.",
+                     "You should increase the number of iterations until the histogram is 'reasonably' smooth",
+                     "The read line shows the median of the histogram, and the grey lines the 90th and and 10th quantiles.",
+                     "Note that the simulations are valid only for static conditions.",
+                     "Also be mindful about what the variation of the parameters represent.",
+                     sep = " "),
+               trigger = "click", placement = "left"
+    )
     
     output$table_static_timedistrib <- renderTable({
         

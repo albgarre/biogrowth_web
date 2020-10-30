@@ -5,7 +5,9 @@ body <- dashboardBody(
     tabItems(
         tabItem(tabName = "welcome",
                 # h2("Welcome tab")
-                withMathJax(includeMarkdown("welcome_page.md"))
+                box(width = 12,
+                    withMathJax(includeMarkdown("welcome_page.md"))
+                    )
                 ),
         
         ## Static prediction -----------------------------------------------------------------
@@ -23,19 +25,34 @@ body <- dashboardBody(
                         ),
                         wellPanel(
                             numericInput("static_pred_logN0", "logN0", 0),
+                            bsTooltip("static_pred_logN0", "The logarithm of the initial microbial count",
+                                      "right", options = list(container = "body")),
                             numericInput("static_pred_mu", "mu", 0.2, min = 0),
+                            bsTooltip("static_pred_mu", "The maximum specific growth rate",
+                                      "right", options = list(container = "body")),
                             numericInput("static_pred_lambda", "lambda", 20, min = 0),
+                            bsTooltip("static_pred_lambda", "The duration of the lag phase",
+                                      "right", options = list(container = "body")),
                             conditionalPanel(
                                 condition = "input.modelStaticPrediction != 'modGompertz'",
-                                numericInput("static_pred_logNmax", "logNmax", 8)
+                                numericInput("static_pred_logNmax", "logNmax", 8),
+                                bsTooltip("static_pred_logNmax", "The logarithm of the maximum count in the stationary phase",
+                                          "right", options = list(container = "body"))
                             ),
                             conditionalPanel(
                                 condition = "input.modelStaticPrediction == 'modGompertz'",
-                                numericInput("static_pred_C", "C", 6)
+                                numericInput("static_pred_C", "C", 6),
+                                bsTooltip("static_pred_C", "The difference between the log initial concentration and the log maximum concentration",
+                                          "right", options = list(container = "body"))
                             ),
-                            numericInput("static_max_time", "Maximum time", 80, min = 0)
+                            numericInput("static_max_time", "Maximum time", 80, min = 0),
+                            bsTooltip("static_max_time", "Duration of the simulation",
+                                      "right", options = list(container = "body"))
                         ),
                         textInput("static_pred_simName", "Simulation name", "Growth condition I"),
+                        bsTooltip("static_pred_simName", paste("The growth curves are coloured according to this name.",
+                                                               "If it already exists, replaces the curve"),
+                                  "right", options = list(container = "body")),
                         actionButton("static_pred_addSim", "Add/Edit Simulation"),
                         actionButton("static_pred_cleanUp", "Clean plot")
                         
@@ -44,6 +61,15 @@ body <- dashboardBody(
                     box(title = "Model predictions", status = "success",
                         solidHeader = TRUE,
                         plotOutput("plot_static_prediction"),
+                        # bsTooltip("plot_static_prediction", "Growth curves under static conditions",
+                        #           paste("This plot shows the predicted growth curves for the models defined.",
+                        #                 "The lines are coloured according to the names you have defined.",
+                        #                 "To edit any line, you just have to redefine model parameters and use the same name.",
+                        #                 "Note that the validity of the predictions depends on the validity of the model parameters.",
+                        #                 "Also, these predictions (in principle) are only valid under static environmental conditions.",
+                        #                 sep = "\n"),
+                        #           trigger = "click"
+                        #           ),
                         tags$hr(),
                         column(6,
                                textInput("static_xaxis", "Label of x-axis", "Storage time")
@@ -89,7 +115,8 @@ body <- dashboardBody(
                             ),
                             column(6,
                                    numericInput("static_pred_sdlogN0", "SD", .5, min = 0)
-                            )
+                            ),
+                            bsTooltip("static_pred_mlogN0", "Mean and standard deviation of a log-normally distributed initial count")
                         ),
                         fluidRow(
                             h4("sqrt(mu)"),
@@ -98,7 +125,9 @@ body <- dashboardBody(
                             ),
                             column(6,
                                    numericInput("static_pred_sdmu", "SD", .1, min = 0)
-                            )
+                            ),
+                            bsTooltip("static_pred_mmu", 
+                                      "Mean and standard deviation of a maximum growth rate whose square root follows a normal distribution")
                         ),
                         fluidRow(
                             h4("sqrt(lambda)"),
@@ -107,7 +136,9 @@ body <- dashboardBody(
                             ),
                             column(6,
                                    numericInput("static_pred_sdlambda", "SD", 1, min = 0)
-                            )
+                            ),
+                            bsTooltip("static_pred_mlambda", 
+                                      "Mean and standard deviation of a lag phase duration whose square root follows a normal distribution")
                         ),
                         fluidRow(
                             h4("log Nmax"),
@@ -116,10 +147,13 @@ body <- dashboardBody(
                             ),
                             column(6,
                                    numericInput("static_pred_sdlogNmax", "SD", .5, min = 0)
-                            )
+                            ),
+                            bsTooltip("static_pred_mlogNmax", "Mean and standard deviation of a log-normally distributed maximum count")
                         ),
                         numericInput("max_time_stoc_static", "Maximum time", value = 80, min = 0),
-                        numericInput("n_sims_static", "Number of simulations", value = 1000, min = 0)
+                        bsTooltip("max_time_stoc_static", "Maximum time for the simulations"),
+                        numericInput("n_sims_static", "Number of simulations", value = 1000, min = 0),
+                        bsTooltip("n_sims_static", "Number of Monte Carlo simulations to estimate the distribution of the microbial count.")
                     ),
                     actionButton("stoc_calculate", "Calculate")
                 ),
