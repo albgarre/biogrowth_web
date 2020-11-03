@@ -198,10 +198,20 @@ body <- dashboardBody(
                     box(title = "Primary model",
                         solidHeader = TRUE, status = "primary",
                         numericInput("dynPred_muopt", "mu_opt", 0.5, min = 0),
+                        bsTooltip("dynPred_muopt", "The maximum specific growth rate under optimal conditions",
+                                  "right", options = list(container = "body")),
                         numericInput("dynPred_logNmax", "logNmax", 8),
+                        bsTooltip("dynPred_logNmax", "Logarithm of the maximum count in the stationary phase",
+                                  "right", options = list(container = "body")),
                         numericInput("dynPred_logN0", "logN0", 0),
+                        bsTooltip("dynPred_logN0", "Logarithm of the initial count",
+                                  "right", options = list(container = "body")),
                         numericInput("dynPred_Q0", "Q0", 1e-3, min = 0),
-                        numericInput("dynPred_maxtime", "Total time", 50, min = 0)
+                        bsTooltip("dynPred_Q0", "Initial value of the variable describing the lag phase; large values = no-lag",
+                                  "right", options = list(container = "body")),
+                        numericInput("dynPred_maxtime", "Total time", 50, min = 0),
+                        bsTooltip("dynPred_maxtime", "Duration of the simulation",
+                                  "right", options = list(container = "body"))
 
                     ),
                     box(title = "Secondary model",
@@ -260,28 +270,38 @@ body <- dashboardBody(
                         wellPanel(
                             fluidRow(
                                 column(6, numericInput("static_fit_logN0", "logN0", 2)),                            
-                                column(2, checkboxInput("static_fit_logN0_fix", "fixed?", value = FALSE))
+                                column(2, checkboxInput("static_fit_logN0_fix", "fixed?", value = FALSE)),
+                                bsTooltip("static_fit_logN0", "The logarithm of the initial microbial count",
+                                          "right", options = list(container = "body"))
                             ),
                             fluidRow(
                                 column(6, numericInput("static_fit_mu", "mu", .2)),                            
-                                column(2, checkboxInput("static_fit_mu_fix", "fixed?", value = FALSE))
+                                column(2, checkboxInput("static_fit_mu_fix", "fixed?", value = FALSE)),
+                                bsTooltip("static_fit_mu", "Maximum specific growth rate",
+                                          "right", options = list(container = "body"))
                             ),
                             fluidRow(
                                 column(6, numericInput("static_fit_lambda", "lambda", 25)),                            
-                                column(2, checkboxInput("static_fit_lambda_fix", "fixed?", value = FALSE))
+                                column(2, checkboxInput("static_fit_lambda_fix", "fixed?", value = FALSE)),
+                                bsTooltip("static_fit_lambda", "Duration of the lag phase",
+                                          "right", options = list(container = "body"))
                             ),
                             fluidRow(
                                 conditionalPanel(
                                     condition = "input.model_static_fit != 'modGompertz'",
                                     column(6, numericInput("static_fit_logNmax", "logNmax", 8)),                            
-                                    column(2, checkboxInput("static_fit_logNmax_fix", "fixed?", value = FALSE))
+                                    column(2, checkboxInput("static_fit_logNmax_fix", "fixed?", value = FALSE)),
+                                    bsTooltip("static_fit_logNmax", "Logarithm of the maximum microbial count",
+                                              "right", options = list(container = "body"))
                                 )
                             ),
                             fluidRow(
                                 conditionalPanel(
                                     condition = "input.model_static_fit == 'modGompertz'",
                                     column(6, numericInput("static_fit_C", "C", 6)),                            
-                                    column(2, checkboxInput("static_fit_C_fix", "fixed?", value = FALSE))
+                                    column(2, checkboxInput("static_fit_C_fix", "fixed?", value = FALSE)),
+                                    bsTooltip("static_fit_C", "Difference between logNmax and logN0",
+                                              "right", options = list(container = "body"))
                                 )
                             ),
                             fluidRow(
@@ -334,7 +354,10 @@ body <- dashboardBody(
                         fileInput("dynFit_excel_file", "Excel file"),
                         textInput("dynFit_excel_sheet", "Sheet name", "Sheet1"),
                         numericInput("dynFit_excel_skip", "Skip", 0),
-                        downloadLink("dynFit_download_example", "Download example")
+                        downloadLink("dynFit_download_example", "Download example"),
+                        bsTooltip("dynFit_excel_sheet", 
+                                  "The Excel file must contain a column named time and as many additional columns as environmental factors",
+                                  "right", options = list(container = "body"))
                     ),
                     box(status = "primary",
                         plotOutput("dynFit_plot_input")
@@ -345,15 +368,27 @@ body <- dashboardBody(
                         status = "primary",
                         numericInput("dynFit_N0", "N0", 10, min = 0, width = "30%"),
                         checkboxInput("dynFit_N0_fix", "known?", width = "30%"),
+                        bsTooltip("dynFit_N0", 
+                                  "Initial microbial count",
+                                  "right", options = list(container = "body")),
                         tags$hr(),
                         numericInput("dynFit_Q0", "Q0", 1e-3, min = 0, width = "30%"),
                         checkboxInput("dynFit_Q0_fix", "known?", width = "30%"),
+                        bsTooltip("dynFit_Q0", 
+                                  "Initial value of the variable describing the lag phase",
+                                  "right", options = list(container = "body")),
                         tags$hr(),
                         numericInput("dynFit_muopt", "mu_opt", .5, min = 0, width = "30%"),
                         checkboxInput("dynFit_muopt_fix", "known?", width = "30%"),
+                        bsTooltip("dynFit_muopt", 
+                                  "Maximum specific growth rate under optimal conditions",
+                                  "right", options = list(container = "body")),
                         tags$hr(),
                         numericInput("dynFit_Nmax", "Nmax", 1e8, min = 0, width = "30%"),
-                        checkboxInput("dynFit_Nmax_fix", "known?", width = "30%")
+                        checkboxInput("dynFit_Nmax_fix", "known?", width = "30%"),
+                        bsTooltip("dynFit_Nmax", 
+                                  "Maximum microbial count in the stationary phase",
+                                  "right", options = list(container = "body"))
                         ),
                     box(title = "Secondary models", solidHeader = TRUE,
                         status = "primary",
@@ -424,7 +459,10 @@ body <- dashboardBody(
                         textInput("card_excel_sheet", "Sheet name", "Sheet1"),
                         numericInput("card_excel_skip", "Skip", 0),
                         tags$hr(),
-                        downloadLink("card_download_example", "Download example")
+                        downloadLink("card_download_example", "Download example"),
+                        bsTooltip("card_excel_sheet", 
+                                  "The excel file must have one column named mu and as many additional columns as environmental factors",
+                                  "right", options = list(container = "body"))
                     ),
                     box(
                         plotOutput("card_plot_input")
@@ -451,6 +489,10 @@ body <- dashboardBody(
                                          `No tranformation` = "none"),
                                     width = "50%"
                         ),
+                        bsTooltip("card_transformation", 
+                                  paste("By default, the SSE of the square root of the growth rate is minimized. That can be changed here.",
+                                        "Be mindful of the distribution of the residuals"),
+                                  "right", options = list(container = "body")),
                         tags$hr(),
                         actionButton("card_fitModel", "Fit model")
                     )

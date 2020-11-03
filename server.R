@@ -267,6 +267,18 @@ server <- function(input, output, session) {
             plot() + xlab(input$static_fit_xlab) + ylab(input$static_fit_ylab)
     })
     
+    addPopover(session, "plot_static_fit",
+               "Fitted growth curve under static conditions",
+               paste("This plot compares the fitted model against the observations.",
+                     "The data was used to fit the model, so the points should be 'reasonably' close",
+                     "If they are not, it is quite likely that the starting values of the parameters were not appropiate",
+                     "Alternatively, it is possible some parameter(s) was fixed to unrealistic values.",
+                     "Note that this modelling approach is designed for data gathered under isothermal conditions.",
+                     "In case of dynamic fits, please use the appropiate module.",
+                     sep = " "),
+               trigger = "click", placement = "left"
+    )
+    
     output$static_fit_par <- renderTable({
         
         summary(static_fit_results())$par %>%
@@ -276,6 +288,19 @@ server <- function(input, output, session) {
                    `CI 95% right` = Estimate + 1.96*`Std. Error`)
         
     })
+    
+    addPopover(session, "static_fit_par",
+               "Table of parameter estimates",
+               paste("This table gives the estimated parameter values and standard errors",
+                     "Only the fitted parameters are included here (i.e. not the fixed parameters).",
+                     "The confidence intervals are calculated as E(X) +/- SEM(X)*1.96.",
+                     "If the model is not identifiable, the cells for the SEM and the CI will show 'NA'.",
+                     "If this is the case, please consider repeating the fit with different starting values, or fixing some parameters.",
+                     "Also, please check that there is no mistake in the data used for the fit.",
+                     "Moreover, before blindly accepting the parameter estimates, it is advisable to check the fitting diagnostics.",
+                     sep = " "),
+               trigger = "click", placement = "right", options = list(container = "body")
+    )
     
     output$static_fit_residual <- renderPlot({
         
@@ -288,6 +313,15 @@ server <- function(input, output, session) {
             xlab("Time") + ylab("Residual")
         
     })
+    
+    addPopover(session, "static_fit_residual",
+               "Residuals plot",
+               paste("This plot illustrates the residuals.",
+                     "They should be centered around the origin and with constant variance.",
+                     "The blue line is a trend line that helps identifying deviations from the theoretical result.",
+                     sep = " "),
+               trigger = "click", placement = "left"
+    )
     
     output$static_fit_resHist <- renderPlot({
         
@@ -304,6 +338,16 @@ server <- function(input, output, session) {
             ylab("Frequency")
         
     })
+    
+    addPopover(session, "static_fit_resHist",
+               "Histogram of the residuals",
+               paste("This plot shows a histogram of the residuals.",
+                     "They should be normally distributed",
+                     "The blue line shows the pdf of a normal distribution with the same mean and variance as the residuals.",
+                     "The histogram should fit 'reasonably well' this line.",
+                     sep = " "),
+               trigger = "click", placement = "left"
+    )
     
     output$static_fit_residual_table <- renderTable(digits = 3, {
         
@@ -552,6 +596,8 @@ server <- function(input, output, session) {
                              transformation = input$card_transformation)
     })
     
+    ## Output
+    
     output$card_fit_results <- renderTable({
         aa <- card_gamma_fit() %>% summary()
         
@@ -562,6 +608,17 @@ server <- function(input, output, session) {
                    `CI 95% right` = Estimate + 1.96*`Std. Error`)
         
     })
+    
+    addPopover(session, "card_fit_results",
+               "Table of parameter estimates",
+               paste("This table contains the estimated parameter values and standard errors.",
+                     "The confidence intervals are calculated as E(X) +/- 1.96*SE(X).",
+                     "Cells with 'NA' values are an indicator of poor parameter identifiability.",
+                     "If this is the case, try changing starting values of fixed model parameters.",
+                     "Before blindly accepting these values, it is advisable to check the model diagnostics.",
+                     sep = " "),
+               trigger = "click", placement = "right", options = list(container = "body")
+    )
     
     output$card_res_hist <- renderPlot({
         
@@ -578,6 +635,15 @@ server <- function(input, output, session) {
             ylab("Frequency")
         
     })
+    
+    addPopover(session, "card_res_hist",
+               "Histogram of the residuals",
+               paste("The residuals should be normally distributed with mean zero.",
+                     "The blue line shows the pdf of a normal distribution with the same mean and variance as the residuals.",
+                     "The histogram should fit the line 'reasonably well'.",
+                     sep = " "),
+               trigger = "click", placement = "left"
+    )
     
     output$card_res_plot <- renderPlot({
         
@@ -633,6 +699,18 @@ server <- function(input, output, session) {
         plot_grid(p1, p2, nrow = 1)
         
     })
+    
+    addPopover(session, "card_res_plot",
+               "Residuals plots",
+               paste("The left plot illustrate the residuals of the model",
+                     "They should be spread around the origin with constant variance.",
+                     "The blue line is a trend line that may aid identifying deviations with respect to the ideal value.",
+                     "The right plot compares the observed versus predicted observations.",
+                     "In a perfect model, all the points would sit on the dashed line.",
+                     "The grey line shows the regression line of predictions vs observations.",
+                     sep = " "),
+               trigger = "click", placement = "left"
+    )
     
     output$card_shapiro <- renderText({
         
@@ -847,6 +925,16 @@ server <- function(input, output, session) {
         
     })
     
+    addPopover(session, "dynPred_plot_growth",
+               "Growth curve under dynamic conditions",
+               paste("This plot shows the predicted microbial count under dynamic conditions.",
+                     "The curve may deviate from the sigmoidal curve due to the variation of the environmental factors",
+                     "Also, the curve may have a lag or stationary phase due to the inhibition by the environmental fators, not because of the usual interpretation under static conditions.",
+                     sep = " "),
+               trigger = "click", placement = "left"
+    )
+    
+    
     output$dynPred_gammaPlot <- renderPlot({
         
         dynPred_prediction()$gammas %>%
@@ -855,9 +943,22 @@ server <- function(input, output, session) {
                 geom_line(aes(x = time, y = gamma, colour = var)) +
                 theme_cowplot() +
                 theme(legend.title = element_blank()) +
-                ylab("Value of gamma") + xlab("Time") 
+                ylab("Value of gamma") + xlab("Time")  +
+                theme(legend.position = "top")
             
     })
+    
+    addPopover(session, "dynPred_gammaPlot",
+               "Variation of the gamma factors",
+               paste("This plot shows the predicted variation of the gamma factors throughout storage.",
+                     "In the gamma approach, each environmental factor acts as a correction factor between 0 and 1 that reduces the growth rate.",
+                     "Hence, this plot illustrates which is the most limiting factor for each time point, and how large is its impact.",
+                     "Note that this plot only shows the effect of the gamma factors. The lag phase can also be a very relevant limiting factor.",
+                     sep = " "),
+               trigger = "click", placement = "left"
+    )
+    
+    
     
     output$dynPred_down_growth <- downloadHandler(
         filename = "dynamic-growth-curve.csv",
@@ -1095,12 +1196,12 @@ server <- function(input, output, session) {
             
         }
         
-        print("To fit:")
-        print(start)
-        print("Fixed")
-        print(known_pars)
-        print("Model names:")
-        print(sec_model_names)
+        # print("To fit:")
+        # print(start)
+        # print("Fixed")
+        # print(known_pars)
+        # print("Model names:")
+        # print(sec_model_names)
         
         ## Fit the model
         
@@ -1112,7 +1213,7 @@ server <- function(input, output, session) {
                                       known_pars = known_pars, 
                                       sec_model_names)
             
-            print(out)
+            # print(out)
             
         } else {
             
@@ -1150,6 +1251,17 @@ server <- function(input, output, session) {
         
     })
     
+    addPopover(session, "dynFit_modelPlot",
+               "Fitted vs observed counts under dynamic conditions",
+               paste("This plot compares the fitted model against the observed counts under dynamic conditions",
+                     "These points were used for parameter estimation, so the model should fit the data reasonably well.",
+                     "If it doesn't, please try different starting values for the model parameters.",
+                     "Alternativelly, please change the values of the fixed model parameters.",
+                     sep = " "),
+               trigger = "click", placement = "left", options = list(container = "body")
+    )
+    
+    
     output$dynFit_par_summary <- renderTable({
         
         my_model <- dynFit_model()
@@ -1169,6 +1281,17 @@ server <- function(input, output, session) {
         
         
     })
+    
+    addPopover(session, "dynFit_par_summary",
+               "Parameter estimates under dynamic conditions",
+               paste("This table reports the estimated parameter values and standard errors",
+                     "For non-linear regression, CI are calculated as E(X) +/- 1.96*SE(X)",
+                     "For MCMC models, they are calculated as the quantiles of the posterior distribution.",
+                     "In case some cells have 'NA' values, consider using more realistic starting values, or fixing some parameters.",
+                     "Moreover, before blindly using these parameters, it is advisable to check the model diagnostics.",
+                     sep = " "),
+               trigger = "click", placement = "right", options = list(container = "body")
+    )
     
     output$dynFit_residualTable <- renderTable(digits = 3, {
         
@@ -1245,6 +1368,15 @@ server <- function(input, output, session) {
 
     })
     
+    addPopover(session, "dynFit_resPlot",
+               "Residuals plot",
+               paste("This plot illustrates the residuals of the model",
+                     "They should be distributed around the origin with constant variance.",
+                     "The blue line shows a trend line, which may help identifying variations with respect to the ideal trend.",
+                     sep = " "),
+               trigger = "click", placement = "left", options = list(container = "body")
+    )
+    
     output$dynFit_resHist <- renderPlot({
         
         
@@ -1278,6 +1410,16 @@ server <- function(input, output, session) {
             ylab("Frequency")
         
     }) 
+    
+    addPopover(session, "dynFit_resHist",
+               "Histogram of the residuals",
+               paste("This plot shows a histogram of the residuals.",
+                     "They should be normally distributed with mean zero",
+                     "The blue line shows the pdf of a normal distribution with the same mean and variance as the residuals.",
+                     "The histogram should adjust 'reasonably well' to the pdf.",
+                     sep = " "),
+               trigger = "click", placement = "left", options = list(container = "body")
+    )
     
     output$dynFit_shapiro <- renderText({
         
@@ -1321,9 +1463,27 @@ server <- function(input, output, session) {
         
     })
     
+    addPopover(session, "dynFit_MCMC_chain",
+               "Convergence of the Markov chain",
+               paste("This plot shows the evolution of the Markov chain.",
+                     "The plot should look like 'noise', without any obvious trend.",
+                     "If it does not, it is recommended to increase the number of MC samples.",
+                     "Alternatively, one could change the starting values or the fixed parameters.",
+                     sep = " "),
+               trigger = "click", placement = "left", options = list(container = "body")
+    )
+    
     output$dynFit_MCMC_pairs <- renderPlot({
         pairs(dynFit_model()$fit_results)
     })
+    
+    addPopover(session, "dynFit_MCMC_pairs",
+               "Posterior distribution of the parameters",
+               paste("This plot illustrates the posterior distribution of the model parameters.",
+                     "The histograms and pairs plot should be 'smooth'. Otherwise, parameter estimates may be unreliable.",
+                     sep = " "),
+               trigger = "click", placement = "left", options = list(container = "body")
+    )
     
     observeEvent(input$dynFit_seed, {
         print("Seed back to normal")
