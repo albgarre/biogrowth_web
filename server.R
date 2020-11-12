@@ -462,7 +462,9 @@ server <- function(input, output, session) {
                     tags$h3(paste("Condition:", each_name)), 
                     selectInput(paste0(id, "_model"),
                                 "Model type",
-                                list(`Cardinal` = "CPM", Zwietering = "Zwietering")),
+                                list(`Cardinal` = "CPM", 
+                                     `Full Ratkowsky` = "fullRatkowsky",
+                                     Zwietering = "Zwietering")),
                     fluidRow(
                         column(6,
                                numericInput(paste0(id, "_xmin"), "Xmin", 0)
@@ -473,7 +475,7 @@ server <- function(input, output, session) {
                     ),
                     fluidRow(
                         column(6,
-                               numericInput(paste0(id, "_xopt"), "Xopt", 37)
+                               numericInput(paste0(id, "_xopt"), "Xopt (not in Ratkowsky)", 37)
                         ),
                         column(6,
                                checkboxInput(paste0(id, "_xopt_fix"), "fixed?")
@@ -481,22 +483,26 @@ server <- function(input, output, session) {
                     ),
                     fluidRow(
                         column(6,
-                               numericInput(paste0(id, "_xmax"), "Xmax (only in cardinal model)", 45)
+                               numericInput(paste0(id, "_xmax"), "Xmax (not in Zwietering)", 45)
                         ),
                         column(6,
                                checkboxInput(paste0(id, "_xmax_fix"), "fixed?")
                         )
                     ),
-                    # conditionalPanel(
-                    #     condition = sprintf("input.%s == 'CMP'", paste0(id, "_model")),
-                    #     numericInput(paste0(id, "_xmax"), "Xmax", 45),
-                    # ),
                     fluidRow(
                         column(6,
-                               numericInput(paste0(id, "_n"), "n", 1)
+                               numericInput(paste0(id, "_n"), "n (not in Cardinal)", 1)
                         ),
                         column(6,
                                checkboxInput(paste0(id, "_n_fix"), "fixed?")
+                        )
+                    ),
+                    fluidRow(
+                        column(6,
+                               numericInput(paste0(id, "_c"), "c (only Ratkowsky)", .1)
+                        ),
+                        column(6,
+                               checkboxInput(paste0(id, "_c_fix"), "fixed?")
                         )
                     ),
                     tags$hr(),
@@ -554,8 +560,6 @@ server <- function(input, output, session) {
                 this_p[[paste0(factor_name, "_xopt")]] <- input[[xopt_id]]
             }
             
-            # this_p[[paste0(factor_name, "_xopt")]] <- input[[xopt_id]]
-            
             xmax_id <- paste0(factor_id, "_xmax")
             
             if (isTRUE(input[[paste0(xmax_id, "_fix")]])) {
@@ -563,8 +567,6 @@ server <- function(input, output, session) {
             } else {
                 this_p[[paste0(factor_name, "_xmax")]] <- input[[xmax_id]]
             }
-            
-            # this_p[[paste0(factor_name, "_xmax")]] <- input[[xmax_id]]
             
             n_id <- paste0(factor_id, "_n")
             
@@ -574,11 +576,33 @@ server <- function(input, output, session) {
                 this_p[[paste0(factor_name, "_n")]] <- input[[n_id]]
             }
             
-            # this_p[[paste0(factor_name, "_n")]] <- input[[n_id]]
+            c_id <- paste0(factor_id, "_c")
+            
+            if (isTRUE(input[[paste0(c_id, "_fix")]])) {
+                known_pars[[paste0(factor_name, "_c")]] <- input[[c_id]]
+            } else {
+                this_p[[paste0(factor_name, "_c")]] <- input[[c_id]]
+            }
+            
+            ## Fixing the parameters that should not be there
             
             if (input[[model_id]] == "Zwietering") {
                 this_p[[paste0(factor_name, "_xmax")]] <- NULL
                 known_pars[[paste0(factor_name, "_xmax")]] <- NULL
+                this_p[[paste0(factor_name, "_c")]] <- NULL
+                known_pars[[paste0(factor_name, "_c")]] <- NULL
+            }
+            
+            if (input[[model_id]] == "CPM") {
+                this_p[[paste0(factor_name, "_c")]] <- NULL
+                known_pars[[paste0(factor_name, "_c")]] <- NULL
+            }
+            
+            if (input[[model_id]] == "fullRatkowsky") {
+                this_p[[paste0(factor_name, "_xopt")]] <- NULL
+                known_pars[[paste0(factor_name, "_xopt")]] <- NULL
+                this_p[[paste0(factor_name, "_n")]] <- NULL
+                known_pars[[paste0(factor_name, "_n")]] <- NULL
             }
             
         }
