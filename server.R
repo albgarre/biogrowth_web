@@ -820,13 +820,14 @@ server <- function(input, output, session) {
                     tags$h3(paste("Condition:", each_name)),
                     selectInput(paste0(id, "_model"),
                                 "Model type",
-                                list(`Cardinal` = "CPM", Zwietering = "Zwietering")),
-                    
+                                list(`Cardinal` = "CPM", 
+                                     `Full Ratkowsky` = "fullRatkowsky",
+                                     Zwietering = "Zwietering")),
                     numericInput(paste0(id, "_xmin"), "Xmin", 0),
-                    numericInput(paste0(id, "_xopt"), "Xopt", 37),
-                    numericInput(paste0(id, "_xmax"), "Xmax (only in cardinal model)", 45),
-                    numericInput(paste0(id, "_n"), "n", 1),
-                    
+                    numericInput(paste0(id, "_xopt"), "Xopt (not for Ratkowsky)", 37),
+                    numericInput(paste0(id, "_xmax"), "Xmax (not for Zwietering)", 45),
+                    numericInput(paste0(id, "_n"), "n (not for Ratkowsky)", 1),
+                    numericInput(paste0(id, "_c"), "c (only for Ratkowsky)", 1),
                     tags$hr(),
                     id = id
                 )
@@ -878,6 +879,9 @@ server <- function(input, output, session) {
 
             n_id <- paste0(factor_id, "_n")
             new_model$n <- input[[n_id]]
+            
+            c_id <- paste0(factor_id, "_c")
+            new_model$c <- input[[c_id]]
             
             sec_models[[i]] <- new_model
 
