@@ -517,6 +517,116 @@ body <- dashboardBody(
                         verbatimTextOutput("card_shapiro")
                         )
                 )
+                ),
+        
+        ## Global fitting --------------------------------------------------------------------
+        
+        tabItem(tabName = "global_fit",
+                fluidRow(
+                    box(title = "Input microbial counts", solidHeader = TRUE,
+                        status = "primary",
+                        fileInput("globalFit_excel_file_count", "Excel file"),
+                        downloadLink("globalFit_download_example_count", "Download example")
+                    ),
+                    box(status = "primary",
+                        plotOutput("globalFit_plot_input_count")
+                    )
+                ),
+                fluidRow(
+                    box(title = "Input environmental conditions", solidHeader = TRUE,
+                        status = "primary",
+                        fileInput("globalFit_excel_file_env", "Excel file"),
+                        downloadLink("globalFit_download_example_env", "Download example")
+                    ),
+                    box(status = "primary",
+                        plotOutput("globalFit_plot_input_env")
+                    )
+                ),
+                fluidRow(
+                    box(title = "Primary model", solidHeader = TRUE,
+                        status = "primary",
+                        numericInput("globalFit_N0", "N0", 10, min = 0, width = "30%"),
+                        checkboxInput("globalFit_N0_fix", "known?", width = "30%"),
+                        bsTooltip("globalFit_N0", 
+                                  "Initial microbial count",
+                                  "right", options = list(container = "body")),
+                        tags$hr(),
+                        numericInput("globalFit_Q0", "Q0", 1e-3, min = 0, width = "30%"),
+                        checkboxInput("globalFit_Q0_fix", "known?", width = "30%"),
+                        bsTooltip("globalFit_Q0", 
+                                  "Initial value of the variable describing the lag phase",
+                                  "right", options = list(container = "body")),
+                        tags$hr(),
+                        numericInput("globalFit_muopt", "mu_opt", .5, min = 0, width = "30%"),
+                        checkboxInput("globalFit_muopt_fix", "known?", width = "30%"),
+                        bsTooltip("globalFit_muopt", 
+                                  "Maximum specific growth rate under optimal conditions",
+                                  "right", options = list(container = "body")),
+                        tags$hr(),
+                        numericInput("globalFit_Nmax", "Nmax", 1e8, min = 0, width = "30%"),
+                        checkboxInput("globalFit_Nmax_fix", "known?", width = "30%"),
+                        bsTooltip("globalFit_Nmax", 
+                                  "Maximum microbial count in the stationary phase",
+                                  "right", options = list(container = "body"))
+                    ),
+                    box(title = "Secondary models", solidHeader = TRUE,
+                        status = "primary",
+                        actionButton("globalFit_update", "Update"),
+                        tags$div(id = 'globalFitPlaceholder')
+                    )
+                ),
+                fluidRow(
+                    box(title = "Fitting algorithm", solidHeader = TRUE,
+                        status = "primary",
+                        selectInput("globalFit_algorithm", "Algorithm",
+                                    list(`Non-linear regression`="nlr",
+                                         `MCMC` = "MCMC")),
+                        conditionalPanel(
+                            condition = "input.globalFit_algorithm == 'MCMC'",
+                            numericInput("globalFit_niter", "Number of iterations", 1000, 
+                                         min = 0, step = 1),
+                            actionButton("globalFit_seed", "Reset seed")
+                        ),
+                        tags$hr(),
+                        actionButton("globalFit_fitModel", "Fit model")
+                    ),
+                    box(title = "Fitted model", solidHeader = TRUE,
+                        status = "success",
+                        plotOutput("globalFit_modelPlot"),
+                        tags$hr(),
+                        checkboxInput("globalFit_addFactor", "Plot a factor?"),
+                        textInput("globalFit_added_factor", "What factor?", "temperature"),
+                        textInput("globalFit_xlabel", "Label of x-axis", "Time"),
+                        textInput("globalFit_ylabel", "Label of y-axis", "logN"),
+                        textInput("globalFit_secylabel", "Label of secondary axis", "temperature")
+                    )
+                ),
+                fluidRow(
+                    box(title = "Parameter estimates", solidHeader = TRUE,
+                        status = "warning",
+                        tableOutput("globalFit_par_summary"),
+                        tags$hr(),
+                        tableOutput("globalFit_residualTable")
+                    ),
+                    box(title = "Fitting diagnostics", status = "warning",
+                        solidHeader = TRUE,
+                        tags$h3("Residual plot"),
+                        plotOutput("globalFit_resPlot"),
+                        tags$hr(),
+                        tags$h3("Histogram of the residuals"),
+                        plotOutput("globalFit_resHist"),
+                        checkboxInput("globalFit_separate_hist", "Separate by experiment?"),
+                        tags$h3("Shapiro-Wilk test of the residuals"),
+                        verbatimTextOutput("globalFit_shapiro"),
+                        conditionalPanel(
+                            condition = "input.globalFit_algorithm == 'MCMC'",
+                            tags$h3("Convergence of the Markov chain"),
+                            plotOutput("globalFit_MCMC_chain"),
+                            tags$h3("Pairs plot"),
+                            plotOutput("globalFit_MCMC_pairs")
+                        )
+                    )
+                )
                 )
     )
     

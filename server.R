@@ -1551,6 +1551,527 @@ server <- function(input, output, session) {
     })
     
     
+    ## Global fitting ---------------------------------------------------
+    
+    ## Input microbial counts
+    
+    globalFit_excelFile_count <- reactive({
+        validate(need(input$globalFit_excel_file_count, label = "Excel"))
+        input$globalFit_excel_file_count
+    })
+    
+    globalFit_excel_frame_count <- reactive({
+        
+        my_path <- globalFit_excelFile_count()$datapath
+        
+        excel_sheets(my_path) %>%
+            set_names(., .) %>%
+            map(., ~ read_excel(my_path, sheet = ., col_types = "numeric"))
+    })
+    
+    output$globalFit_plot_input_count <- renderPlot({
+        
+        globalFit_excel_frame_count() %>%
+            imap_dfr(., ~ mutate(.x, exp = .y)) %>%
+            ggplot(aes(x = time, y = logN, colour = exp)) +
+            geom_point() +
+            ylab("") +
+            theme(legend.title = element_blank())
+        
+    })
+    
+    output$globalFit_download_example_count <- downloadHandler(
+        filename = "example_global_count.xlsx",
+        content = function(file) {
+            file.copy("example_global_count.xlsx", file)
+        }
+    )
+    
+    ## Input environmental conditions
+    
+    globalFit_excelFile_env <- reactive({
+        validate(need(input$globalFit_excel_file_env, label = "Excel"))
+        input$globalFit_excel_file_env
+    })
+    
+    globalFit_excel_frame_env <- reactive({
+        
+        my_path <- globalFit_excelFile_env()$datapath
+        
+        excel_sheets(my_path) %>%
+            set_names(., .) %>%
+            map(., ~ read_excel(my_path, sheet = ., col_types = "numeric"))
+    })
+    
+    output$globalFit_plot_input_env <- renderPlot({
+        
+        globalFit_excel_frame_env() %>%
+            map(., ~ gather(., var, value, -time)) %>%
+            imap_dfr(., ~ mutate(.x, exp = .y)) %>%
+            ggplot(aes(x = time, y = value, colour = exp)) +
+            geom_line() +
+            geom_point() +
+            facet_wrap("var", scales = "free_y") +
+            ylab("") +
+            theme(legend.title = element_blank())
+        
+    })
+    
+    output$globalFit_download_example_env <- downloadHandler(
+        filename = "example_global_env.xlsx",
+        content = function(file) {
+            file.copy("example_global_env.xlsx", file)
+        }
+    )
+    
+    ## Dynamic secondary model selector
+    
+    globalFit_id_dynamic <- c() # so I can remove them later
+    
+    observeEvent(input$globalFit_update, {
+        
+        my_names <- globalFit_excel_frame_env()[[1]] %>%
+            select(-time) %>%
+            names()
+        
+        # Remove old ones
+        
+        if (length(globalFit_id_dynamic) > 0) {
+            
+            for (each_id in globalFit_id_dynamic) {
+                removeUI(
+                    ## pass in appropriate div id
+                    selector = paste0('#', each_id)
+                )
+            }
+            
+            globalFit_id_dynamic <<- c()
+            
+        }
+        
+        # Insert new ones
+        
+        for (each_name in my_names) {
+            
+            id <- paste0('globalFit_', each_name)
+            
+            insertUI(
+                selector = '#globalFitPlaceholder',
+                ui = tags$div(
+                    tags$h3(paste("Condition:", each_name)), 
+                    selectInput(paste0(id, "_model"),
+                                "Model type",
+                                list(`Cardinal` = "CPM", 
+                                     `Full Ratkowsky` = "fullRatkowsky",
+                                     Zwietering = "Zwietering")),
+                    fluidRow(
+                        column(6,
+                               numericInput(paste0(id, "_xmin"), "Xmin", 0)
+                        ),
+                        column(6,
+                               checkboxInput(paste0(id, "_xmin_fix"), "fixed?")
+                        )
+                    ),
+                    fluidRow(
+                        column(6,
+                               numericInput(paste0(id, "_xopt"), "Xopt (not for Ratkowsky model)", 37)
+                        ),
+                        column(6,
+                               checkboxInput(paste0(id, "_xopt_fix"), "fixed?")
+                        )
+                    ),
+                    fluidRow(
+                        column(6,
+                               numericInput(paste0(id, "_xmax"), "Xmax (not for Zwietering model)", 45)
+                        ),
+                        column(6,
+                               checkboxInput(paste0(id, "_xmax_fix"), "fixed?")
+                        )
+                    ),
+                    fluidRow(
+                        column(6,
+                               numericInput(paste0(id, "_n"), "n (not for Ratkowsky)", 1)
+                        ),
+                        column(6,
+                               checkboxInput(paste0(id, "_n_fix"), "fixed?")
+                        )
+                    ),
+                    fluidRow(
+                        column(6,
+                               numericInput(paste0(id, "_c"), "c (only for Ratkowsky)", 1)
+                        ),
+                        column(6,
+                               checkboxInput(paste0(id, "_c_fix"), "fixed?")
+                        )  
+                    ),
+                    tags$hr(),
+                    id = id
+                )
+            )
+            
+            globalFit_id_dynamic <<- c(globalFit_id_dynamic, id)
+        }
+        
+    })
+    
+    ## Model fitting
+    
+    globalFit_model <- eventReactive(input$globalFit_fitModel, {
+        
+        ## Extract model parameters
+        
+        my_factors <- globalFit_excel_frame_env()[[1]] %>%
+            select(-time) %>%
+            names()
+        
+        sec_model_names <- c()
+        start <- list()
+        known_pars <- list()
+        
+        #- Primary model
+        
+        if (isTRUE(input$globalFit_muopt_fix)) {
+            known_pars$mu_opt <- input$globalFit_muopt
+        } else {
+            start$mu_opt <- input$globalFit_muopt
+        }
+        
+        if (isTRUE(input$globalFit_N0_fix)) {
+            known_pars$N0 <- input$globalFit_N0
+        } else {
+            start$N0 <- input$globalFit_N0
+        }
+        
+        if (isTRUE(input$globalFit_Nmax_fix)) {
+            known_pars$Nmax <- input$globalFit_Nmax
+        } else {
+            start$Nmax <- input$globalFit_Nmax
+        }
+        
+        if (isTRUE(input$globalFit_Q0_fix)) {
+            known_pars$Q0 <- input$globalFit_Q0
+        } else {
+            start$Q0 <- input$globalFit_Q0
+        }
+        
+        #- Secondary model
+        
+        for (i in 1:length(my_factors)) {
+            
+            factor_name <- my_factors[[i]]
+            factor_id <- globalFit_id_dynamic[[i]]
+            
+            model_id <- paste0(factor_id, "_model")
+            sec_model_names[factor_name] <- input[[model_id]]
+            
+            xmin_id <- paste0(factor_id, "_xmin")
+            
+            if (isTRUE(input[[paste0(xmin_id, "_fix")]])) {
+                known_pars[[paste0(factor_name, "_xmin")]] <- input[[xmin_id]]
+            } else {
+                start[[paste0(factor_name, "_xmin")]] <- input[[xmin_id]]
+            }
+            
+            xopt_id <- paste0(factor_id, "_xopt")
+            
+            if (isTRUE(input[[paste0(xopt_id, "_fix")]])) {
+                known_pars[[paste0(factor_name, "_xopt")]] <- input[[xopt_id]]
+            } else {
+                start[[paste0(factor_name, "_xopt")]] <- input[[xopt_id]]
+            }
+            
+            # start[[paste0(factor_name, "_xopt")]] <- input[[xopt_id]]
+            
+            xmax_id <- paste0(factor_id, "_xmax")
+            
+            if (isTRUE(input[[paste0(xmax_id, "_fix")]])) {
+                known_pars[[paste0(factor_name, "_xmax")]] <- input[[xmax_id]]
+            } else {
+                start[[paste0(factor_name, "_xmax")]] <- input[[xmax_id]]
+            }
+            
+            # start[[paste0(factor_name, "_xmax")]] <- input[[xmax_id]]
+            
+            n_id <- paste0(factor_id, "_n")
+            
+            if (isTRUE(input[[paste0(n_id, "_fix")]])) {
+                known_pars[[paste0(factor_name, "_n")]] <- input[[n_id]]
+            } else {
+                start[[paste0(factor_name, "_n")]] <- input[[n_id]]
+            }
+            
+            c_id <- paste0(factor_id, "_c")
+            
+            if (isTRUE(input[[paste0(c_id, "_fix")]])) {
+                known_pars[[paste0(factor_name, "_c")]] <- input[[c_id]]
+            } else {
+                start[[paste0(factor_name, "_c")]] <- input[[c_id]]
+            }
+            
+            ## Remove parameters that should not be there
+            
+            if (input[[model_id]] == "Zwietering") {
+                start[[paste0(factor_name, "_xmax")]] <- NULL
+                known_pars[[paste0(factor_name, "_xmax")]] <- NULL
+                start[[paste0(factor_name, "_c")]] <- NULL
+                known_pars[[paste0(factor_name, "_c")]] <- NULL
+            }
+            
+            if (input[[model_id]] == "CPM") {
+                start[[paste0(factor_name, "_c")]] <- NULL
+                known_pars[[paste0(factor_name, "_c")]] <- NULL
+            }
+            
+            if (input[[model_id]] == "fullRatkosky") {
+                start[[paste0(factor_name, "_n")]] <- NULL
+                known_pars[[paste0(factor_name, "_n")]] <- NULL
+                start[[paste0(factor_name, "_xopt")]] <- NULL
+                known_pars[[paste0(factor_name, "_xopt")]] <- NULL
+            }
+            
+        }
+
+        # print("To fit:")
+        # print(start)
+        # print("Fixed")
+        # print(known_pars)
+        # print("Model names:")
+        # print(sec_model_names)
+        
+        ## Prepare the data
+        
+        exp_data <- lapply(names(globalFit_excel_frame_env()), function(each_name) {
+            
+            list(
+                data = globalFit_excel_frame_count()[[each_name]],
+                conditions = globalFit_excel_frame_env()[[each_name]]
+            )
+            
+        })
+        
+        names(exp_data) <- names(globalFit_excel_frame_env())
+        
+        ## Fit the model
+        
+        if (input$globalFit_algorithm == "nlr") {
+            
+            out <- fit_multiple_growth(starting_point = start,
+                                       experiment_data = exp_data,
+                                       known_pars = known_pars, 
+                                       sec_model_names = sec_model_names)
+            
+            # print(out)
+            
+        } else {
+            
+            out <- fit_multiple_growth_MCMC(starting_point = start,
+                                            experiment_data = exp_data,
+                                            known_pars = known_pars, 
+                                            sec_model_names = sec_model_names,
+                                            niter = input$globalFit_niter)
+            
+        }
+        
+        out
+        
+        
+    })
+    
+    ## Output
+    
+    output$globalFit_modelPlot <- renderPlot({
+
+        withProgress({
+            
+            if (input$globalFit_addFactor) {
+                plot(globalFit_model(),
+                     add_factor = input$globalFit_added_factor,
+                     label_y1 = input$globalFit_ylabel,
+                     label_y2 = input$globalFit_secylabel,
+                     label_x = input$globalFit_xlabel)
+            } else {
+                plot(globalFit_model(),
+                     label_x = input$globalFit_xlabel,
+                     label_y1 = input$globalFit_ylabel)
+            }
+            
+        }, message = "Fitting the model")
+        
+    })
+    
+    output$globalFit_par_summary <- renderTable({
+        
+        my_model <- globalFit_model()
+        
+        if ("FitMultipleDynamicGrowth" %in% class(my_model)) {  # nlr fit
+            
+            summary(my_model)$par %>%
+                as_tibble(rownames = "Parameter") %>%
+                select(Parameter, Estimate, `Std. Error`) %>%
+                mutate(`CI 95% left` = Estimate - 1.96*`Std. Error`,
+                       `CI 95% right` = Estimate + 1.96*`Std. Error`)
+            
+        } else {  # MCMC fit
+            summary(my_model) %>%
+                as_tibble(rownames = "Index")
+        }
+        
+        
+    })
+    
+    addPopover(session, "globalFit_par_summary",
+               "Parameter estimates under dynamic conditions",
+               paste("This table reports the estimated parameter values and standard errors",
+                     "For non-linear regression, CI are calculated as E(X) +/- 1.96*SE(X)",
+                     "For MCMC models, they are calculated as the quantiles of the posterior distribution.",
+                     "In case some cells have 'NA' values, consider using more realistic starting values, or fixing some parameters.",
+                     "Moreover, before blindly using these parameters, it is advisable to check the model diagnostics.",
+                     sep = " "),
+               trigger = "click", placement = "right", options = list(container = "body")
+    )
+    
+    output$globalFit_residualTable <- renderTable(digits = 3, {
+        
+        my_model <- globalFit_model()
+        
+        if (is.FitMultipleDynamicGrowth(my_model)) {  # nlr fit
+            
+            n_par <- length(my_model$fit_results$par)
+            res <- residuals(my_model)$res
+            n_dat <- my_model$data %>%
+                map_dbl(., ~ nrow(.$data)) %>%
+                sum()
+
+            
+        } else {  # MCMC fit
+            
+            n_par <- ncol(my_model$fit_results$par)
+            res <- residuals(my_model)$res
+            
+            n_dat <- my_model$data %>%
+                map_dbl(., ~ nrow(.$data)) %>%
+                sum()
+
+        }
+        
+        tibble(res = res,
+               res2 = res^2) %>%
+            summarize(ME = mean(res, na.rm = TRUE),
+                      MSE = mean(res2, na.rm = TRUE)
+            ) %>%
+            mutate(RMSE = sqrt(MSE),
+                   SER = sqrt(MSE*n_dat/(n_dat - n_par)),
+                   Bf = 10^ME,
+                   Af = 10^RMSE,
+                   df = n_dat - n_par
+            )
+        
+    })
+    
+    output$globalFit_resPlot <- renderPlot({
+        
+        p <- residuals(globalFit_model()) %>%
+            ggplot(aes(x = time, y = res, colour = exp)) + 
+            geom_point() + 
+            geom_smooth() +
+            geom_hline(yintercept = 0, linetype = 2) + 
+            xlab("Time") + ylab("Residual") +
+            theme(legend.title = element_blank())
+        
+        p
+
+    })
+    
+    addPopover(session, "globalFit_resPlot",
+               "Residuals plot",
+               paste("This plot illustrates the residuals of the model",
+                     "They should be distributed around the origin with constant variance.",
+                     "The blue line shows a trend line, which may help identifying variations with respect to the ideal trend.",
+                     sep = " "),
+               trigger = "click", placement = "left", options = list(container = "body")
+    )
+     
+    output$globalFit_resHist <- renderPlot({
+        
+        my_res <- residuals(globalFit_model()) 
+        
+        p <- my_res %>%
+            ggplot(aes(x = res)) +
+            geom_histogram(aes(y = ..density..)) +
+            geom_function(fun = dnorm, args = list(mean = mean(my_res$res), sd = sd(my_res$res)),
+                          linetype = 2, colour = "blue", size = 1) +
+            xlab("Residual") +
+            ylab("Frequency")
+        
+        if (input$globalFit_separate_hist) {
+            p <- p + facet_wrap("exp", scales = "free_y")
+        }
+        
+        p
+
+    })
+
+    addPopover(session, "globalFit_resHist",
+               "Histogram of the residuals",
+               paste("This plot shows a histogram of the residuals.",
+                     "They should be normally distributed with mean zero",
+                     "The blue line shows the pdf of a normal distribution with the same mean and variance as the residuals.",
+                     "The histogram should adjust 'reasonably well' to the pdf.",
+                     sep = " "),
+               trigger = "click", placement = "left", options = list(container = "body")
+    )
+    
+    output$globalFit_shapiro <- renderText({
+
+        res <- residuals(globalFit_model())$res
+
+        test_res <- shapiro.test(res)
+
+        p_val <- test_res$p.value
+
+        if (p_val < 0.05) {
+            paste("There is enough evidence to state that residuals are not normally distributed; p-value =",
+                  round(p_val, 3))
+        } else {
+            paste("There is NOT enough evidence to state that residuals are not normally distributed; p-value =",
+                  round(p_val, 3))
+        }
+
+    })
+    
+    output$globalFit_MCMC_chain <- renderPlot({
+
+        plot(globalFit_model()$fit_results)
+
+    })
+
+    addPopover(session, "globalFit_MCMC_chain",
+               "Convergence of the Markov chain",
+               paste("This plot shows the evolution of the Markov chain.",
+                     "The plot should look like 'noise', without any obvious trend.",
+                     "If it does not, it is recommended to increase the number of MC samples.",
+                     "Alternatively, one could change the starting values or the fixed parameters.",
+                     sep = " "),
+               trigger = "click", placement = "left", options = list(container = "body")
+    )
+
+    output$globalFit_MCMC_pairs <- renderPlot({
+        pairs(globalFit_model()$fit_results)
+    })
+
+    addPopover(session, "globalFit_MCMC_pairs",
+               "Posterior distribution of the parameters",
+               paste("This plot illustrates the posterior distribution of the model parameters.",
+                     "The histograms and pairs plot should be 'smooth'. Otherwise, parameter estimates may be unreliable.",
+                     sep = " "),
+               trigger = "click", placement = "left", options = list(container = "body")
+    )
+    
+    observeEvent(input$globalFit_seed, {
+        print("Seed back to normal")
+        set.seed(12412)
+    })
+    
     
 }
 
