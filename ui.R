@@ -7,6 +7,7 @@ library(shiny)
 library(shinyBS)
 library(shinydashboard)
 library(rhandsontable)
+library(dashboardthemes)
 
 source("tableFileUI.R")
 source("tableFile.R")

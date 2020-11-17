@@ -2,6 +2,9 @@
 
 
 body <- dashboardBody(
+    shinyDashboardThemes(
+        theme = "flat_red"
+    ),
     tabItems(
         tabItem(tabName = "welcome",
                 # h2("Welcome tab")
