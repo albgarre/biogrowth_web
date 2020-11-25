@@ -163,7 +163,7 @@ body <- dashboardBody(
                 box(title = "Stochastic predictions", status = "success",
                     solidHeader = TRUE,
                     tags$h3("Stochastic growth curve"),
-                    plotOutput("plot_static_prediction_stoc"),
+                    plotOutput("plot_static_prediction_stoc") %>% withSpinner(color = "#2492A8"),
                     column(6,
                            textInput("static_xaxis_stoc", "Label of x-axis", "Storage time")
                     ),
@@ -315,7 +315,7 @@ body <- dashboardBody(
                         ),
                     box(title = "Model fit",
                         solidHeader = TRUE, status = "success",
-                        plotOutput("plot_static_fit"),
+                        plotOutput("plot_static_fit") %>% withSpinner(color = "#2492A8"),
                         tags$hr(),
                         textInput("static_fit_xlab", "x-axis label", "Time"),
                         textInput("static_fit_ylab", "y-axis label", "logN")
@@ -416,7 +416,7 @@ body <- dashboardBody(
                         ),
                     box(title = "Fitted model", solidHeader = TRUE,
                         status = "success",
-                        plotOutput("dynFit_modelPlot"),
+                        plotOutput("dynFit_modelPlot") %>% withSpinner(color = "#2492A8"),
                         tags$hr(),
                         checkboxInput("dynFit_addFactor", "Plot a factor?"),
                         textInput("dynFit_added_factor", "What factor?", "temperature"),
@@ -504,7 +504,7 @@ body <- dashboardBody(
                 fluidRow(
                     box(title = "Parameter estimates", status = "warning",
                         solidHeader = TRUE,
-                        tableOutput("card_fit_results"),
+                        tableOutput("card_fit_results") %>% withSpinner(color = "#2492A8"),
                         tags$hr(),
                         tableOutput("card_residual_table")
                     ),
@@ -595,7 +595,7 @@ body <- dashboardBody(
                     ),
                     box(title = "Fitted model", solidHeader = TRUE,
                         status = "success",
-                        plotOutput("globalFit_modelPlot"),
+                        plotOutput("globalFit_modelPlot") %>% withSpinner(color = "#2492A8"),
                         tags$hr(),
                         checkboxInput("globalFit_addFactor", "Plot a factor?"),
                         textInput("globalFit_added_factor", "What factor?", "temperature"),

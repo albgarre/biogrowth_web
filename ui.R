@@ -8,13 +8,19 @@ library(shinyBS)
 library(shinydashboard)
 library(rhandsontable)
 library(dashboardthemes)
+library(shinycssloaders)
 
 source("tableFileUI.R")
 source("tableFile.R")
 
 ## Header
 
-header <- dashboardHeader(title = "biogrowth")
+header <- dashboardHeader(title = shinyDashboardLogo(
+    theme = "flat_red",
+    boldText = "biogrowth",
+    mainText = "",
+    badgeText = "web"
+))
 
 ## Sidebar
 
@@ -22,7 +28,7 @@ sidebar <- dashboardSidebar(
     sidebarMenu(
         id = "sidebar",
         menuItem("Welcome page", tabName = "welcome", icon = icon("gulp")),
-        menuItem("Static predictions (deterministic)", tabName = "st_prediction",
+        menuItem("Static predictions", tabName = "st_prediction",
                  icon = icon("chart-line")),
         menuItem("Static predictions (stochastic)", tabName = "stoc_prediction",
                  icon = icon("dice-four")),
@@ -45,7 +51,7 @@ source("my_body.R")
 
 ## Lauch the application
 
-dashboardPage(header, sidebar, body)
+dashboardPage(header, sidebar, body, title = "biogrowth - web")
 
 
 
