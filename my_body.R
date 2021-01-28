@@ -3,12 +3,12 @@
 
 body <- dashboardBody(
     shinyDashboardThemes(
-        theme = "flat_red"
+        theme = "poor_mans_flatly"
     ),
     tabItems(
         tabItem(tabName = "welcome",
                 # h2("Welcome tab")
-                box(width = 12,
+                boxPlus(width = 12,
                     withMathJax(includeMarkdown("welcome_page.md"))
                     )
                 ),
@@ -17,9 +17,9 @@ body <- dashboardBody(
         
         tabItem(tabName = "st_prediction",
                 fluidRow(
-                    box(title = "Model definition", status = "primary",
-                        solidHeader = TRUE, collapsible = FALSE,
-                        selectInput(
+                    boxPlus(title = "Model definition", status = "primary",
+                        solidHeader = TRUE, collapsible = FALSE, closable = FALSE,
+                        pickerInput(
                             "modelStaticPrediction",
                             "Primary growth model",
                             list(Baranyi = "Baranyi", 
@@ -64,15 +64,6 @@ body <- dashboardBody(
                     box(title = "Model predictions", status = "success",
                         solidHeader = TRUE,
                         plotOutput("plot_static_prediction"),
-                        # bsTooltip("plot_static_prediction", "Growth curves under static conditions",
-                        #           paste("This plot shows the predicted growth curves for the models defined.",
-                        #                 "The lines are coloured according to the names you have defined.",
-                        #                 "To edit any line, you just have to redefine model parameters and use the same name.",
-                        #                 "Note that the validity of the predictions depends on the validity of the model parameters.",
-                        #                 "Also, these predictions (in principle) are only valid under static environmental conditions.",
-                        #                 sep = "\n"),
-                        #           trigger = "click"
-                        #           ),
                         tags$hr(),
                         column(6,
                                textInput("static_xaxis", "Label of x-axis", "Storage time")
@@ -103,74 +94,40 @@ body <- dashboardBody(
             fluidRow(
                 box(title = "Model definition", status = "primary",
                     solidHeader = TRUE,
-                    selectInput(
-                        "modelStaticPredictionStoc",
+                    pickerInput(
+                        "mosdelStaticPredictionStoc",
                         "Primary growth model",
-                        list(Baranyi = "Baranyi", 
-                             `Modified Gompertz` = "modGompertz",
-                             `Tri-linear` = "Trilinear")
+                        primary_model_data() %>% set_names(., .) %>% as.list()
                     ),
                     wellPanel(
-                        fluidRow(
-                            h4("log N0"),
-                            column(6,
-                                   numericInput("static_pred_mlogN0", "Mean", 0)
-                            ),
-                            column(6,
-                                   numericInput("static_pred_sdlogN0", "SD", .5, min = 0)
-                            ),
-                            bsTooltip("static_pred_mlogN0", "Mean and standard deviation of a log-normally distributed initial count")
-                        ),
-                        fluidRow(
-                            h4("sqrt(mu)"),
-                            column(6,
-                                   numericInput("static_pred_mmu", "Mean", 1)
-                            ),
-                            column(6,
-                                   numericInput("static_pred_sdmu", "SD", .1, min = 0)
-                            ),
-                            bsTooltip("static_pred_mmu", 
-                                      "Mean and standard deviation of a maximum growth rate whose square root follows a normal distribution")
-                        ),
-                        fluidRow(
-                            h4("sqrt(lambda)"),
-                            column(6,
-                                   numericInput("static_pred_mlambda", "Mean", 5)
-                            ),
-                            column(6,
-                                   numericInput("static_pred_sdlambda", "SD", 1, min = 0)
-                            ),
-                            bsTooltip("static_pred_mlambda", 
-                                      "Mean and standard deviation of a lag phase duration whose square root follows a normal distribution")
-                        ),
-                        fluidRow(
-                            h4("log Nmax"),
-                            column(6,
-                                   numericInput("static_pred_mlogNmax", "Mean", 6)
-                            ),
-                            column(6,
-                                   numericInput("static_pred_sdlogNmax", "SD", .5, min = 0)
-                            ),
-                            bsTooltip("static_pred_mlogNmax", "Mean and standard deviation of a log-normally distributed maximum count")
-                        ),
-                        numericInput("max_time_stoc_static", "Maximum time", value = 80, min = 0),
-                        bsTooltip("max_time_stoc_static", "Maximum time for the simulations"),
-                        numericInput("n_sims_static", "Number of simulations", value = 1000, min = 0),
-                        bsTooltip("n_sims_static", "Number of Monte Carlo simulations to estimate the distribution of the microbial count.")
+                        uiOutput("stoc_pars")
                     ),
+                    numericInput("max_time_stoc_static", "Maximum time", value = 80, min = 0),
+                    numericInput("n_sims_static", "Number of simulations", value = 1000, min = 0),
                     actionButton("stoc_calculate", "Calculate")
                 ),
-                box(title = "Stochastic predictions", status = "success",
-                    solidHeader = TRUE,
+                boxPlus(title = "Stochastic predictions", status = "success",
+                        closable = FALSE, solidHeader = TRUE,
                     tags$h3("Stochastic growth curve"),
-                    plotOutput("plot_static_prediction_stoc") %>% withSpinner(color = "#2492A8"),
-                    column(6,
-                           textInput("static_xaxis_stoc", "Label of x-axis", "Storage time")
+                    dropdownButton(circle = TRUE, status = "success", 
+                                   icon = icon("gear"), width = "300px",
+                                   textInput("static_xaxis_stoc", "Label of x-axis", "Storage time"),
+                                   textInput("static_yaxis_stoc", "Label of y-axis", "Log microbial count"),
+                                   colourInput("static_linecol_stoc", "Line colour", "black"),
+                                   colourInput("static_ribbon80fill_stoc", "Colour of narrow ribbon", "grey"),
+                                   colourInput("static_ribbon90fill_stoc", "Colour of wide ribbon", "grey"),
+                                   numericInput("static_linesize_stoc", "Line size", 2, min = 0),
+                                   selectInput("static_linetype_stoc", "Line type", 
+                                               choices = list("solid", "dashed", "dotted", "dotdash",
+                                                              "longdash", "twodash")),
+                                   numericInput("static_alpha80_stoc", "Transparency narrow ribbon", .5, min = 0, max = 1, step = .1),
+                                   numericInput("static_alpha90_stoc", "Transparency wide ribbon", .5, min = 0, max = 1, step = .1)
                     ),
-                    column(6,
-                           textInput("static_yaxis_stoc", "Label of y-axis", "Log microbial count")
-                    ),
-                    downloadButton("static_stoc_down", label = "Export quantiles"),
+                    plotlyOutput("plot_static_prediction_stoc") %>% withSpinner(color = "#2492A8"),
+                    # plotOutput("plot_static_prediction_stoc") %>% withSpinner(color = "#2492A8"),
+                    br(),
+                    downloadBttn("static_stoc_down", label = "Export quantiles", 
+                                 color = "success", style = "simple"),
                     tags$hr(),
                     tags$h3("Time to a microbial count"),
                     numericInput("tgt_cont_stoc_static", "Target log microbial count", value = 4,

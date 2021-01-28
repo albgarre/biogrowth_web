@@ -120,22 +120,67 @@ server <- function(input, output, session) {
     
     ## Stochastic static predictions -------------------------------------------------
     
+    ## Dynamic parameter selector
+    
+    output$stoc_pars <- renderUI({
+        
+        my_pars <- tibble(par = primary_model_data(input$mosdelStaticPredictionStoc)$pars) %>%
+            left_join(., 
+                      tribble(
+                          ~par, ~default, ~par_name, ~scale,
+                          "mu", 0.5, "mu (log10 CFU/g/h)", "sqrt",
+                          "logNmax", 8, "log Nmax (log CFU/g)", "original",
+                          "logN0", 2, "log N0 (log CFU/g)", "original",
+                          "lambda", 5, "lambda (h)", "sqrt",
+                          "C", 6, "C (log CFU/g)", "original",
+                          "nu", 1, "nu (·)", "original",
+                          )
+                      )
+        
+        map(1:nrow(my_pars),
+             ~ fluidRow(
+                 h4(my_pars$par_name[.]),
+                 numericInput(paste0("stoc_par_mean_", my_pars$par[.]), "Mean", my_pars$default[.]),
+                 numericInput(paste0("stoc_par_sd_", my_pars$par[.]), "SD", .1*my_pars$default[.]),
+                 selectInput(paste0("stoc_par_transf_", my_pars$par[.]), "Scale",
+                             choices = list(`Square-root` = "sqrt",
+                                            `log-transform` = "log",
+                                            `No transformation` = "original"),
+                             selected = my_pars$scale[.])
+             )
+             
+        )
+    })
+    
+    
+    ##
+    
     static_prediction_stoc <- eventReactive(input$stoc_calculate, withProgress(
         message = "Calculation in progress",
         {
             
-            predict_stochastic_growth(input$modelStaticPredictionStoc, 
-                                      seq(0, input$max_time_stoc_static, length = 100), 
-                                      input$n_sims_static,
-                                      mean_logN0 = input$static_pred_mlogN0, 
-                                      sd_logN0 = input$static_pred_sdlogN0,
-                                      mean_sqmu = input$static_pred_mmu,
-                                      sd_sqmu = input$static_pred_sdmu,
-                                      mean_sqlambda = input$static_pred_mlambda, 
-                                      sd_sqlambda = input$static_pred_sdlambda,
-                                      mean_logNmax = input$static_pred_mlogNmax,
-                                      sd_logNmax = input$static_pred_sdlogNmax)
+            ## Extract the parameters
             
+            my_model <- input$mosdelStaticPredictionStoc
+            par_names <- primary_model_data(my_model)$pars
+            
+            my_pars <- par_names %>%
+                map_dfr(.,
+                    ~ tibble(par = .,
+                             mean = input[[paste0("stoc_par_mean_", .)]],
+                             sd = input[[paste0("stoc_par_sd_", .)]],
+                             scale = input[[paste0("stoc_par_transf_", .)]])
+                    )
+
+            ## Make the calculation
+            
+            predict_stochastic_growth(
+                my_model,
+                seq(0, input$max_time_stoc_static, length = 100), 
+                input$n_sims_static,
+                my_pars
+                )
+
         }) 
         )
     
@@ -147,11 +192,23 @@ server <- function(input, output, session) {
     })
     
     
-    output$plot_static_prediction_stoc <- renderPlot(
+    # output$plot_static_prediction_stoc <- renderPlot(
+    output$plot_static_prediction_stoc <- renderPlotly({
         
-        plot(static_prediction_stoc()) + xlab(input$static_xaxis_stoc) + ylab(input$static_yaxis_stoc)
+        p <- plot(static_prediction_stoc(),
+             line_col = input$static_linecol_stoc,
+             line_size = input$static_linesize_stoc,
+             line_type = input$static_linetype_stoc,
+             ribbon80_fill = input$static_ribbon80fill_stoc,
+             ribbon90_fill = input$static_ribbon90fill_stoc,
+             alpha80 = 1-input$static_alpha80_stoc,
+             alpha90 = 1-input$static_alpha90_stoc
+             ) + 
+            xlab(input$static_xaxis_stoc) + ylab(input$static_yaxis_stoc)
         
-    )
+        ggplotly(p)
+        
+    })
     
     addPopover(session, "plot_static_prediction_stoc",
                "Stochastic growth curves under static conditions",

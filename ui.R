@@ -3,12 +3,18 @@
 
 options(shiny.reactlog=TRUE) 
 
+library(tidyverse)
+library(biogrowth)
 library(shiny)
 library(shinyBS)
 library(shinydashboard)
 library(rhandsontable)
 library(dashboardthemes)
 library(shinycssloaders)
+library(shinyWidgets)
+library(colourpicker)
+library(shinydashboardPlus)
+library(plotly)
 
 source("tableFileUI.R")
 source("tableFile.R")
@@ -16,7 +22,7 @@ source("tableFile.R")
 ## Header
 
 header <- dashboardHeader(title = shinyDashboardLogo(
-    theme = "flat_red",
+    theme = "poor_mans_flatly",
     boldText = "biogrowth",
     mainText = "",
     badgeText = "web"
