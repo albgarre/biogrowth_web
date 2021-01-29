@@ -22,65 +22,36 @@ body <- dashboardBody(
                         pickerInput(
                             "modelStaticPrediction",
                             "Primary growth model",
-                            list(Baranyi = "Baranyi", 
-                                 `Modified Gompertz` = "modGompertz",
-                                 `Tri-linear` = "Trilinear")
+                            primary_model_data() %>% set_names(., .) %>% as.list()
                         ),
                         wellPanel(
-                            numericInput("static_pred_logN0", "logN0", 0),
-                            bsTooltip("static_pred_logN0", "The logarithm of the initial microbial count",
-                                      "right", options = list(container = "body")),
-                            numericInput("static_pred_mu", "mu", 0.2, min = 0),
-                            bsTooltip("static_pred_mu", "The maximum specific growth rate",
-                                      "right", options = list(container = "body")),
-                            numericInput("static_pred_lambda", "lambda", 20, min = 0),
-                            bsTooltip("static_pred_lambda", "The duration of the lag phase",
-                                      "right", options = list(container = "body")),
-                            conditionalPanel(
-                                condition = "input.modelStaticPrediction != 'modGompertz'",
-                                numericInput("static_pred_logNmax", "logNmax", 8),
-                                bsTooltip("static_pred_logNmax", "The logarithm of the maximum count in the stationary phase",
-                                          "right", options = list(container = "body"))
-                            ),
-                            conditionalPanel(
-                                condition = "input.modelStaticPrediction == 'modGompertz'",
-                                numericInput("static_pred_C", "C", 6),
-                                bsTooltip("static_pred_C", "The difference between the log initial concentration and the log maximum concentration",
-                                          "right", options = list(container = "body"))
-                            ),
-                            numericInput("static_max_time", "Maximum time", 80, min = 0),
-                            bsTooltip("static_max_time", "Duration of the simulation",
-                                      "right", options = list(container = "body"))
+                            uiOutput("static_pars")
                         ),
+                        numericInput("static_max_time", "Maximum time", 80, min = 0),
                         textInput("static_pred_simName", "Simulation name", "Growth condition I"),
                         bsTooltip("static_pred_simName", paste("The growth curves are coloured according to this name.",
                                                                "If it already exists, replaces the curve"),
                                   "right", options = list(container = "body")),
                         actionButton("static_pred_addSim", "Add/Edit Simulation"),
                         actionButton("static_pred_cleanUp", "Clean plot")
-                        
-                        
                     ),
-                    box(title = "Model predictions", status = "success",
-                        solidHeader = TRUE,
-                        plotOutput("plot_static_prediction"),
-                        tags$hr(),
-                        column(6,
-                               textInput("static_xaxis", "Label of x-axis", "Storage time")
-                               # checkboxInput("static_time_to_count", "Include time to log count")
-                               ),
-                        column(6,
-                               textInput("static_yaxis", "Label of y-axis", "Log microbial count")
-                               
-                               ),
-                        tags$hr(),
+                    boxPlus(title = "Model predictions", status = "success",
+                        solidHeader = TRUE, closable = FALSE,
+                        plotlyOutput("plot_static_prediction"),
+                        dropdownButton(circle = TRUE, status = "success", 
+                                       align = "right",
+                                       icon = icon("gear"), width = "300px",
+                                       textInput("static_xaxis", "Label of x-axis", "Storage time"),
+                                       textInput("static_yaxis", "Label of y-axis", "Log microbial count")
+                        ),
+                        br(),
                         downloadButton("static_export", "Export simulations")
 
                     )
                 ),
                 fluidRow(
-                    box(title = "Time to X log count", status = "success",
-                        solidHeader = TRUE,
+                    boxPlus(title = "Time to X log count", status = "success",
+                        solidHeader = TRUE, closable = FALSE,
                         numericInput("static_tgt_count", "Target count", 2),
                         tableOutput("static_timeToTable")
                         )
@@ -92,8 +63,8 @@ body <- dashboardBody(
         tabItem(
             tabName = "stoc_prediction",
             fluidRow(
-                box(title = "Model definition", status = "primary",
-                    solidHeader = TRUE,
+                boxPlus(title = "Model definition", status = "primary",
+                    solidHeader = TRUE, closable = FALSE,
                     pickerInput(
                         "mosdelStaticPredictionStoc",
                         "Primary growth model",
@@ -109,6 +80,7 @@ body <- dashboardBody(
                 boxPlus(title = "Stochastic predictions", status = "success",
                         closable = FALSE, solidHeader = TRUE,
                     tags$h3("Stochastic growth curve"),
+                    plotlyOutput("plot_static_prediction_stoc") %>% withSpinner(color = "#2492A8"),
                     dropdownButton(circle = TRUE, status = "success", 
                                    icon = icon("gear"), width = "300px",
                                    textInput("static_xaxis_stoc", "Label of x-axis", "Storage time"),
@@ -116,15 +88,13 @@ body <- dashboardBody(
                                    colourInput("static_linecol_stoc", "Line colour", "black"),
                                    colourInput("static_ribbon80fill_stoc", "Colour of narrow ribbon", "grey"),
                                    colourInput("static_ribbon90fill_stoc", "Colour of wide ribbon", "grey"),
-                                   numericInput("static_linesize_stoc", "Line size", 2, min = 0),
-                                   selectInput("static_linetype_stoc", "Line type", 
+                                   numericInput("static_linesize_stoc", "Line size", 1, min = 0),
+                                   pickerInput("static_linetype_stoc", "Line type", 
                                                choices = list("solid", "dashed", "dotted", "dotdash",
                                                               "longdash", "twodash")),
                                    numericInput("static_alpha80_stoc", "Transparency narrow ribbon", .5, min = 0, max = 1, step = .1),
                                    numericInput("static_alpha90_stoc", "Transparency wide ribbon", .5, min = 0, max = 1, step = .1)
                     ),
-                    plotlyOutput("plot_static_prediction_stoc") %>% withSpinner(color = "#2492A8"),
-                    # plotOutput("plot_static_prediction_stoc") %>% withSpinner(color = "#2492A8"),
                     br(),
                     downloadBttn("static_stoc_down", label = "Export quantiles", 
                                  color = "success", style = "simple"),
@@ -142,20 +112,20 @@ body <- dashboardBody(
         
         tabItem(tabName = "dyna_prediction",
                 fluidRow(
-                    box(title = "Data input", solidHeader = TRUE,
-                        status = "primary",
+                    boxPlus(title = "Data input", solidHeader = TRUE,
+                        status = "primary", closable = FALSE,
                         fileInput("dynPred_excel_file", "Excel file"),
                         textInput("dynPred_excel_sheet", "Sheet name", "Sheet1"),
                         numericInput("dynPred_excel_skip", "Skip", 0),
                         tags$hr(),
                         downloadLink("dynPred_download_example", "Download example")
                     ),
-                    box(status = "primary",
+                    boxPlus(status = "primary", closable = FALSE,
                         plotOutput("dynPred_plot_input")
                     )
                 ),
                 fluidRow(
-                    box(title = "Primary model",
+                    boxPlus(title = "Primary model", closable = FALSE,
                         solidHeader = TRUE, status = "primary",
                         numericInput("dynPred_muopt", "mu_opt", 0.5, min = 0),
                         bsTooltip("dynPred_muopt", "The maximum specific growth rate under optimal conditions",
@@ -174,7 +144,7 @@ body <- dashboardBody(
                                   "right", options = list(container = "body"))
 
                     ),
-                    box(title = "Secondary model",
+                    boxPlus(title = "Secondary model", closable = FALSE,
                         solidHeader = TRUE, status = "primary",
                         actionButton("dynPred_update", "Update"),
                         tags$div(id = 'dynPredPlaceholder')
@@ -182,26 +152,62 @@ body <- dashboardBody(
                 ),
                 
                 fluidRow(
-                    box(title = "Prediction",
+                    boxPlus(title = "Prediction", closable = FALSE,
                         solidHeader = TRUE, status = "success",
                         actionButton("dynPred_calculate", "Calculate!"),
                         tags$hr(),
-                        checkboxInput("dynPred_addFactor", "Plot a factor?"),
-                        textInput("dynPred_added_factor", "What factor?", "temperature"),
                         textInput("dynPred_xlabel", "Label of x-axis", "Time"),
                         textInput("dynPred_ylabel", "Label of y-axis", "logN"),
-                        textInput("dynPred_secylabel", "Label of secondary axis", "temperature"),
-                        checkboxInput("dynPred_add_timeToX", "Add time to log count?"),
-                        numericInput("dynPred_tgt_count", "Target log count", 2)
+                        colourInput("dynPred_linecol", "Line colour", "black"),
+                        numericInput("dynPred_linesize", "Line size", 2, min = 0),
+                        pickerInput("dynPred_linetype", "Line type",
+                                    list(solid = NA, dash = 'dash', 
+                                         dot = 'dot', dashdot = 'dashdot')
+                                    ),
+                        prettySwitch("dynPred_addFactor", "Plot a factor?",
+                                     status = "success",
+                                     slim = TRUE),
+                        conditionalPanel(
+                            condition = "input.dynPred_addFactor",
+                            wellPanel(
+                                textInput("dynPred_added_factor", "What factor?", "temperature"),
+                                textInput("dynPred_secylabel", "Label of secondary axis", "temperature"),
+                                colourInput("dynPred_linecol2", "Line colour", "red"),
+                                numericInput("dynPred_linesize2", "Line size", 2, min = 0),
+                                pickerInput("dynPred_linetype2", "Line type",
+                                            list(solid = NA, dash = 'dash', 
+                                                 dot = 'dot', dashdot = 'dashdot'),
+                                            selected = "dot"
+                                            )
+                            )
+                        ),
+                        
+                        prettySwitch("dynPred_add_timeToX", "Add time to log count?",
+                                     status = "success",
+                                     slim = TRUE),
+                        conditionalPanel(
+                            condition = "input.dynPred_add_timeToX",
+                            wellPanel(
+                                numericInput("dynPred_tgt_count", "Target log count", 2),
+                                colourInput("dynPred_linecol3", "Line colour", "blue"),
+                                numericInput("dynPred_linesize3", "Line size", 2, min = 0),
+                                pickerInput("dynPred_linetype3", "Line type",
+                                            list(solid = NA, dash = 'dash', 
+                                                 dot = 'dot', dashdot = 'dashdot'),
+                                            selected = "dash"
+                                )
+                            )
+                        )
+                        
                         
                     ),
-                    box(status = "success",
+                    boxPlus(status = "success", closable = FALSE,
                         tags$h3("Predicted growth"),
-                        plotOutput("dynPred_plot_growth"),
+                        plotlyOutput("dynPred_plot_growth"),
                         downloadButton("dynPred_down_growth", "Export growth curve"),
                         tags$hr(),
                         tags$h3("Variation of the gamma factors"),
-                        plotOutput("dynPred_gammaPlot"),
+                        plotlyOutput("dynPred_gammaPlot"),
                         downloadButton("dynPred_down_gamma", "Export gamma curve")
                         )
                 )
@@ -223,51 +229,12 @@ body <- dashboardBody(
                         selectInput(
                             "model_static_fit",
                             "Primary growth model",
-                            list(Baranyi = "Baranyi", 
-                                 `Modified Gompertz` = "modGompertz",
-                                 `Tri-linear` = "Trilinear")
+                            primary_model_data() %>% set_names(., .) %>% as.list()
                         ),
                         wellPanel(
-                            fluidRow(
-                                column(6, numericInput("static_fit_logN0", "logN0", 2)),                            
-                                column(2, checkboxInput("static_fit_logN0_fix", "fixed?", value = FALSE)),
-                                bsTooltip("static_fit_logN0", "The logarithm of the initial microbial count",
-                                          "right", options = list(container = "body"))
-                            ),
-                            fluidRow(
-                                column(6, numericInput("static_fit_mu", "mu", .2)),                            
-                                column(2, checkboxInput("static_fit_mu_fix", "fixed?", value = FALSE)),
-                                bsTooltip("static_fit_mu", "Maximum specific growth rate",
-                                          "right", options = list(container = "body"))
-                            ),
-                            fluidRow(
-                                column(6, numericInput("static_fit_lambda", "lambda", 25)),                            
-                                column(2, checkboxInput("static_fit_lambda_fix", "fixed?", value = FALSE)),
-                                bsTooltip("static_fit_lambda", "Duration of the lag phase",
-                                          "right", options = list(container = "body"))
-                            ),
-                            fluidRow(
-                                conditionalPanel(
-                                    condition = "input.model_static_fit != 'modGompertz'",
-                                    column(6, numericInput("static_fit_logNmax", "logNmax", 8)),                            
-                                    column(2, checkboxInput("static_fit_logNmax_fix", "fixed?", value = FALSE)),
-                                    bsTooltip("static_fit_logNmax", "Logarithm of the maximum microbial count",
-                                              "right", options = list(container = "body"))
-                                )
-                            ),
-                            fluidRow(
-                                conditionalPanel(
-                                    condition = "input.model_static_fit == 'modGompertz'",
-                                    column(6, numericInput("static_fit_C", "C", 6)),                            
-                                    column(2, checkboxInput("static_fit_C_fix", "fixed?", value = FALSE)),
-                                    bsTooltip("static_fit_C", "Difference between logNmax and logN0",
-                                              "right", options = list(container = "body"))
-                                )
-                            ),
-                            fluidRow(
-                                actionButton("button_static_fit", "Fit model")
-                            )
-                        )
+                            uiOutput("static_fit_pars")
+                        ),
+                        actionButton("button_static_fit", "Fit model")
                         
                         ),
                     box(title = "Model fit",

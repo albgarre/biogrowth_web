@@ -13,17 +13,55 @@ server <- function(input, output, session) {
     
     ## Static predictions -----------------------------------------------------
     
+    ## Dynamic model parameters
+    
+    output$static_pars <- renderUI({
+        
+        my_pars <- tibble(par = primary_model_data(input$modelStaticPrediction)$pars) %>%
+            left_join(., 
+                      tribble(
+                          ~par, ~default, ~par_name,
+                          "mu", 0.5, "mu (log10 CFU/g/h)",
+                          "logNmax", 8, "log Nmax (log CFU/g)",
+                          "logN0", 2, "log N0 (log CFU/g)",
+                          "lambda", 20, "lambda (h)",
+                          "C", 6, "C (log CFU/g)", 
+                          "nu", 1, "nu (·)",
+                      )
+            )
+        
+        map(1:nrow(my_pars),
+            ~ fluidRow(
+                numericInput(paste0("static_pred_", my_pars$par[.]), 
+                             my_pars$par_name[.], my_pars$default[.])
+            )
+            
+        )
+    })
+    
+    ##
+    
     static_prediction_list <- reactiveVal(list())
     
     observeEvent(input$static_pred_addSim, {
         
+        ## Extract the parameters
+        
+        par_names <- primary_model_data(input$modelStaticPrediction)$pars
+        
+        my_pars <- par_names %>%
+            set_names(., .) %>%
+            map_dbl(.,
+                    ~ input[[paste0("static_pred_", .)]]
+                    ) 
+        
+        print(my_pars)
+
+        ## Make the simulation
+        
         new_pred <- predict_isothermal_growth(input$modelStaticPrediction, 
                                   seq(0, input$static_max_time, length = 100), 
-                                  list(logN0 = input$static_pred_logN0,
-                                       mu = input$static_pred_mu,
-                                       lambda = input$static_pred_lambda,
-                                       logNmax = input$static_pred_logNmax,
-                                       C = input$static_pred_C)
+                                  my_pars
         )
         
         new_list <- static_prediction_list()
@@ -37,29 +75,18 @@ server <- function(input, output, session) {
         # static_prediction_frame(NULL)
         static_prediction_list(list())
     })
-    
-    # static_prediction <- reactive({
-    #     
-        # predict_isothermal_growth(input$modelStaticPrediction, 
-        #                           seq(0, input$static_max_time, length = 1000), 
-        #                           list(logN0 = input$static_pred_logN0,
-        #                                mu = input$static_pred_mu,
-        #                                lambda = input$static_pred_lambda,
-        #                                logNmax = input$static_pred_logNmax,
-        #                                C = input$static_pred_C)
-        # )
-    #     
-    # })
-    
-    output$plot_static_prediction <- renderPlot({
+
+    output$plot_static_prediction <- renderPlotly({
         
         if (length(static_prediction_list()) == 0) {
             
-            return(ggplot() + geom_blank())
+            p <- ggplot() + geom_blank()
+            
+            return(ggplotly(p))
             
         }
         
-        static_prediction_list() %>%
+        p <- static_prediction_list() %>%
             map(.,
                 ~.$simulation
                 ) %>%
@@ -67,11 +94,13 @@ server <- function(input, output, session) {
                      ~ mutate(.x, sim = .y)
                      ) %>%
             ggplot() + 
-                geom_line(aes(x = time, y = logN, colour = sim), size = 1) +
+                geom_line(aes(x = time, y = logN, colour = sim)) +
                 xlab(input$static_xaxis) +
                 ylab(input$static_yaxis) +
                 theme_cowplot() +
                 theme(legend.title = element_blank())
+        
+        ggplotly(p)
         
     })
     
@@ -259,57 +288,75 @@ server <- function(input, output, session) {
     
     ## Static fitting -----------------------------------------------------
     
+    ## Input data
+    
     pred_micro_data <- callModule(tableFile, "pred_micro_data",
                                   default_data = tibble(time = c(0, 25, 50, 75, 100),
                                                         logN = c(2, 2.5, 7, 8, 8)
-                                                        )
+                                  )
     )
+    
+    
+    ## Dynamic parameter selector
+    
+    output$static_fit_pars <- renderUI({
+        
+        my_pars <- tibble(par = primary_model_data(input$model_static_fit)$pars) %>%
+            left_join(., 
+                      tribble(
+                          ~par, ~default, ~par_name,
+                          "mu", 0.5, "mu (log10 CFU/g/h)",
+                          "logNmax", 8, "log Nmax (log CFU/g)",
+                          "logN0", 2, "log N0 (log CFU/g)",
+                          "lambda", 5, "lambda (h)", 
+                          "C", 6, "C (log CFU/g)", 
+                          "nu", 1, "nu (·)", 
+                      )
+                      
+            )
+        
+        map(1:nrow(my_pars),
+            ~ fluidRow(
+                column(6, numericInput(paste0("static_fit_", my_pars$par[.]), my_pars$par_name[.], my_pars$default[.])),
+                column(2, awesomeCheckbox(paste0("static_fit_", my_pars$par[.], "_fix"), "fixed?"))
+            )
+        )
+    })
+    
+    ## Model fitting
     
     static_fit_results <- eventReactive(input$button_static_fit, {
         
         my_model <- input$model_static_fit
         my_data <- as_tibble(pred_micro_data())
+        par_names <- primary_model_data(my_model)$pars
         
-        start <- list()
-        known <- list()
+        ## Extract the parameters
+
+        my_pars <- par_names %>%
+            set_names(., .) %>%
+            map_dfr(.,
+                ~ tibble(par = .,
+                         value = input[[paste0("static_fit_", .)]],
+                         fixed = input[[paste0("static_fit_", ., "_fix")]]
+                         )
+            ) 
         
-        if (isTRUE(input$static_fit_logN0_fix)) {
-            known$logN0 <- input$static_fit_logN0
-        } else {
-            start$logN0 <- input$static_fit_logN0
-        }
+        aa <- my_pars %>%
+            filter(!fixed) 
         
-        if (isTRUE(input$static_fit_mu_fix)) {
-            known$mu <- input$static_fit_mu
-        } else {
-            start$mu <- input$static_fit_mu
-        }
+        start <- aa %>%
+            pull(value) %>%
+            as.list() %>%
+            set_names(., aa$par)
         
-        if (isTRUE(input$static_fit_lambda_fix)) {
-            known$lambda <- input$static_fit_lambda
-        } else {
-            start$lambda <- input$static_fit_lambda
-        }
+        bb <- my_pars %>%
+            filter(fixed) 
         
-        if (isTRUE(input$static_fit_logNmax_fix)) {
-            known$logNmax <- input$static_fit_logNmax
-        } else {
-            start$logNmax <- input$static_fit_logNmax
-        }
-        
-        if (isTRUE(input$static_fit_C_fix)) {
-            known$C <- input$static_fit_C
-        } else {
-            start$C <- input$static_fit_C
-        }
-        
-        if (my_model == "modGompertz") {  # To avoid singularities
-            start$logNmax <- NULL
-            known$logNmax <- NULL
-        } else {
-            start$C <- NULL
-            known$C <- NULL
-        }
+        known <- bb %>%
+            pull(value) %>%
+            as.list() %>%
+            set_names(., bb$par)
         
         static_fit <- fit_isothermal_growth(my_data, my_model,
                                             unlist(start),
@@ -970,43 +1017,92 @@ server <- function(input, output, session) {
 
         names(sec_models) <- my_factors
         
-        
-        # print("+++++")
-        # print(sec_models)
-        # print(primary_pars)
-        # print(my_factors)
-
-        
         predict_dynamic_growth(seq(0, input$dynPred_maxtime, length = 1000),
                               dynPred_excel_frame(), primary_pars,
-                              sec_models)
+                              sec_models, check = FALSE)
     })
     
-    output$dynPred_plot_growth <- renderPlot({
+    output$dynPred_plot_growth <- renderPlotly({
+        
+        ## Model prediction
+        
+        fig <- plot_ly()
+        fig <- fig %>% add_lines(x = dynPred_prediction()$simulation$time, 
+                                 y = dynPred_prediction()$simulation$logN,
+                                 line = list(width = input$dynPred_linesize, 
+                                             dash = input$dynPred_linetype, 
+                                             color = input$dynPred_linecol))
+        
+        ## Environmental condition
         
         if (input$dynPred_addFactor) {
-            p <- plot(dynPred_prediction(),
-                 add_factor = input$dynPred_added_factor,
-                 label_y1 = input$dynPred_ylabel,
-                 label_y2 = input$dynPred_secylabel) + 
-                xlab(input$dynPred_xlabel)
-        } else {
-            p <- plot(dynPred_prediction()) + 
-                xlab(input$dynPred_xlabel) +
-                ylab(input$dynPred_ylabel)
+            
+            aa <- tibble(time = seq(0, max(dynPred_prediction()$simulation$time), length = 100),
+                         y = dynPred_prediction()$env_conditions[[input$dynPred_added_factor]](time)
+                         )
+            
+            fig <- fig %>% add_lines(x = aa$time, y = aa$y, yaxis = "y2",
+                                     line = list(width = input$dynPred_linesize2, 
+                                                 dash = input$dynPred_linetype2, 
+                                                 color = input$dynPred_linecol2))
+            
         }
         
+        fig <- fig %>% 
+            layout(yaxis2 = list(overlaying = "y",
+                                 # tickfont = list(color = "red"),
+                                 side = "right",
+                                 title = input$dynPred_secylabel
+                                 ),
+                   xaxis = list(title = input$dynPred_xlabel),
+                   yaxis = list(title = input$dynPred_ylabel),
+                   showLegend = FALSE
+                   )
+        
+        ## Time to log count
+        
         if (input$dynPred_add_timeToX) {
+            
+            vline <- function(x = 0, color = "red", dash = "dot", width = 2) {
+                list(
+                    type = "line", 
+                    y0 = 0, 
+                    y1 = 1, 
+                    yref = "paper",
+                    x0 = x, 
+                    x1 = x, 
+                    line = list(color = color, dash = dash, width = 2)
+                )
+            }
+            
+            hline <- function(y = 0, color = "blue", dash = "dot", width = 2) {
+                list(
+                    type = "line", 
+                    x0 = 0, 
+                    x1 = 1, 
+                    xref = "paper",
+                    y0 = y, 
+                    y1 = y, 
+                    line = list(color = color, dash = dash, width = width)
+                )
+            }
             
             my_t <- time_to_logcount(dynPred_prediction(),
                                      input$dynPred_tgt_count)
             
-            p <- p + geom_vline(xintercept = my_t, linetype = 2) +
-                geom_label(x = my_t, y = input$dynPred_tgt_count,
-                           label = paste("t =", round(my_t, 1)))
-            
+            fig <- fig %>%
+                layout(shapes = list(vline(my_t, color = input$dynPred_linecol3,
+                                           dash = input$dynPred_linetype3,
+                                           width = input$dynPred_linesize3)),
+                       showlegend = FALSE) %>%
+                add_text(x = my_t, y = input$dynPred_tgt_count,
+                         text = paste("t =", round(my_t, 1)))
+
         }
-        p
+        
+        ##
+
+        fig 
         
     })
     
@@ -1020,9 +1116,9 @@ server <- function(input, output, session) {
     )
     
     
-    output$dynPred_gammaPlot <- renderPlot({
+    output$dynPred_gammaPlot <- renderPlotly({
         
-        dynPred_prediction()$gammas %>%
+        p <- dynPred_prediction()$gammas %>%
             gather(var, gamma, -time) %>%
             ggplot() +
                 geom_line(aes(x = time, y = gamma, colour = var)) +
@@ -1030,6 +1126,8 @@ server <- function(input, output, session) {
                 theme(legend.title = element_blank()) +
                 ylab("Value of gamma") + xlab("Time")  +
                 theme(legend.position = "top")
+        
+        ggplotly(p)
             
     })
     
