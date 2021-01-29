@@ -56,7 +56,7 @@ tableFile <- function(input, output, session,
     ## Show the table
     
     # output$my_table <- renderTable(out_table())
-    output$my_plot <- renderPlot({
+    output$my_plot <- renderPlotly({
         
         p <- ggplot(out_table()) +
             geom_point(aes_string(label_1, label_2))
@@ -65,7 +65,7 @@ tableFile <- function(input, output, session,
             p <- p + scale_y_log10()
         }
         
-        p
+        ggplotly(p)
         
     })
     

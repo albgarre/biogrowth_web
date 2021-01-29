@@ -1,4 +1,6 @@
 
+library(shinydashboardPlus)
+
 tableFileUI <- function(id, inputBoxTitle = "Input", outputBoxTitle = "Output",
                         csvlabel = "CSV file", label_1 = "time", label_2 = "logN",
                         default_frame = data.frame(c(0, 10), c(70, 80))) {
@@ -41,13 +43,14 @@ tableFileUI <- function(id, inputBoxTitle = "Input", outputBoxTitle = "Output",
             
             ## Output
             
-            box(title = outputBoxTitle, collapsible = TRUE, status = "primary",
-                actionButton(ns("update_table"), "Refresh"),
-                # tableOutput(ns("my_table"))
-                plotOutput(ns("my_plot")),
-                tags$hr(),
-                downloadLink(ns("export_table"), "Export")
-                )
+            boxPlus(title = outputBoxTitle, collapsible = TRUE, status = "primary",
+                    solidHeader = TRUE, closable = FALSE,
+                    actionButton(ns("update_table"), "Refresh"),
+                    # tableOutput(ns("my_table"))
+                    plotlyOutput(ns("my_plot")),
+                    # tags$hr(),
+                    footer = downloadLink(ns("export_table"), "Export")
+                    )
             
         )
         
