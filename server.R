@@ -252,9 +252,10 @@ server <- function(input, output, session) {
                trigger = "click", placement = "left"
     )
     
-    output$plot_static_timedistrib <- renderPlot({
+    output$plot_static_timedistrib <- renderPlotly({
         
-        plot(static_time_distrib())
+        p <- plot(static_time_distrib())
+        ggplotly(p)
         
     })
     
@@ -305,10 +306,10 @@ server <- function(input, output, session) {
             left_join(., 
                       tribble(
                           ~par, ~default, ~par_name,
-                          "mu", 0.5, "mu (log10 CFU/g/h)",
+                          "mu", 0.3, "mu (log10 CFU/g/h)",
                           "logNmax", 8, "log Nmax (log CFU/g)",
                           "logN0", 2, "log N0 (log CFU/g)",
-                          "lambda", 5, "lambda (h)", 
+                          "lambda",30, "lambda (h)", 
                           "C", 6, "C (log CFU/g)", 
                           "nu", 1, "nu (·)", 
                       )
@@ -366,9 +367,17 @@ server <- function(input, output, session) {
         
     })
     
-    output$plot_static_fit <- renderPlot({
-        static_fit_results() %>%
-            plot() + xlab(input$static_fit_xlab) + ylab(input$static_fit_ylab)
+    output$plot_static_fit <- renderPlotly({
+        p <- static_fit_results() %>%
+            plot(line_col = input$static_fit_linecol,
+                 line_size = input$static_fit_linesize,
+                 line_type = input$static_fit_linetype,
+                 point_col = input$static_fit_pointcol,
+                 point_size = input$static_fit_pointsize,
+                 point_shape = input$static_fit_pointtype) + 
+            xlab(input$static_fit_xlab) + ylab(input$static_fit_ylab)
+        
+        ggplotly(p)
     })
     
     addPopover(session, "plot_static_fit",
@@ -406,15 +415,18 @@ server <- function(input, output, session) {
                trigger = "click", placement = "right", options = list(container = "body")
     )
     
-    output$static_fit_residual <- renderPlot({
+    output$static_fit_residual <- renderPlotly({
         
-        tibble(res = static_fit_results()$fit$residuals,
+        p <- tibble(res = static_fit_results()$fit$residuals,
                time = static_fit_results()$data$time) %>%
             ggplot(aes(x = time, y = res)) +
             geom_point() +
             geom_hline(yintercept = 0, linetype = 2) +
             geom_smooth(se=FALSE) +
-            xlab("Time") + ylab("Residual")
+            xlab("Time") + ylab("Residual") +
+            theme_cowplot()
+        
+        ggplotly(p)
         
     })
     
@@ -434,12 +446,15 @@ server <- function(input, output, session) {
         
         aa <- tibble(res = static_fit_results()$fit$residuals)
         
-        ggplot(aa, aes(x = res)) + 
+        p <- ggplot(aa, aes(x = res)) + 
             geom_histogram(aes(y = ..density..)) + 
             geom_function(fun = dnorm, args = list(mean = mean(aa$res), sd = sd(aa$res)),
                           linetype = 2, colour = "blue", size = 1) +
             xlab("Residual") + 
             ylab("Frequency")
+        
+        p
+        # ggplotly(p)
         
     })
     
@@ -1204,46 +1219,45 @@ server <- function(input, output, session) {
         }
     )
     
-    ## Dynamic secondary model selector
+    ## Dynamic secondary model selector (I should find the time to improve this code)
     
     dynFit_id_dynamic <- c() # so I can remove them later
-    
+
     observeEvent(input$dynFit_update, {
-        
+
         my_names <- dynFit_excel_frame() %>%
             select(-time) %>%
             names()
-        
+
         # Remove old ones
-        
+
         if (length(dynFit_id_dynamic) > 0) {
-            
+
             for (each_id in dynFit_id_dynamic) {
                 removeUI(
                     ## pass in appropriate div id
                     selector = paste0('#', each_id)
                 )
             }
-            
+
             dynFit_id_dynamic <<- c()
-            
+
         }
-        
+
         # Insert new ones
-        
+
         for (each_name in my_names) {
-            
+
             id <- paste0('dynFit_', each_name)
-            
+
             insertUI(
                 selector = '#dynFitPlaceholder',
                 ui = tags$div(
-                    tags$h3(paste("Condition:", each_name)), 
+                    tags$h3(paste("Condition:", each_name)),
                     selectInput(paste0(id, "_model"),
                                 "Model type",
-                                list(`Cardinal` = "CPM", 
-                                     `Full Ratkowsky` = "fullRatkowsky",
-                                     Zwietering = "Zwietering")),
+                                secondary_model_data() %>% set_names(., .) %>% as.list()
+                                ),
                     fluidRow(
                         column(6,
                                numericInput(paste0(id, "_xmin"), "Xmin", 0)
@@ -1282,16 +1296,16 @@ server <- function(input, output, session) {
                         ),
                         column(6,
                                checkboxInput(paste0(id, "_c_fix"), "fixed?")
-                        )  
+                        )
                     ),
                     tags$hr(),
                     id = id
                 )
             )
-            
+
             dynFit_id_dynamic <<- c(dynFit_id_dynamic, id)
         }
-        
+
     })
     
     ## Model fitting
@@ -1410,14 +1424,7 @@ server <- function(input, output, session) {
             }
             
         }
-        
-        # print("To fit:")
-        # print(start)
-        # print("Fixed")
-        # print(known_pars)
-        # print("Model names:")
-        # print(sec_model_names)
-        
+
         ## Fit the model
         
         if (input$dynFit_algorithm == "nlr") {

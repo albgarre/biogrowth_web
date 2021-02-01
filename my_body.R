@@ -39,7 +39,6 @@ body <- dashboardBody(
                         solidHeader = TRUE, closable = FALSE,
                         plotlyOutput("plot_static_prediction"),
                         dropdownButton(circle = TRUE, status = "success", 
-                                       align = "right",
                                        icon = icon("gear"), width = "300px",
                                        textInput("static_xaxis", "Label of x-axis", "Storage time"),
                                        textInput("static_yaxis", "Label of y-axis", "Log microbial count")
@@ -80,7 +79,6 @@ body <- dashboardBody(
                 boxPlus(title = "Stochastic predictions", status = "success",
                         closable = FALSE, solidHeader = TRUE,
                     tags$h3("Stochastic growth curve"),
-                    plotlyOutput("plot_static_prediction_stoc") %>% withSpinner(color = "#2492A8"),
                     dropdownButton(circle = TRUE, status = "success", 
                                    icon = icon("gear"), width = "300px",
                                    textInput("static_xaxis_stoc", "Label of x-axis", "Storage time"),
@@ -89,12 +87,13 @@ body <- dashboardBody(
                                    colourInput("static_ribbon80fill_stoc", "Colour of narrow ribbon", "grey"),
                                    colourInput("static_ribbon90fill_stoc", "Colour of wide ribbon", "grey"),
                                    numericInput("static_linesize_stoc", "Line size", 1, min = 0),
-                                   pickerInput("static_linetype_stoc", "Line type", 
+                                   selectInput("static_linetype_stoc", "Line type", 
                                                choices = list("solid", "dashed", "dotted", "dotdash",
                                                               "longdash", "twodash")),
                                    numericInput("static_alpha80_stoc", "Transparency narrow ribbon", .5, min = 0, max = 1, step = .1),
                                    numericInput("static_alpha90_stoc", "Transparency wide ribbon", .5, min = 0, max = 1, step = .1)
                     ),
+                    plotlyOutput("plot_static_prediction_stoc") %>% withSpinner(color = "#2492A8"),
                     br(),
                     downloadBttn("static_stoc_down", label = "Export quantiles", 
                                  color = "success", style = "simple"),
@@ -102,7 +101,7 @@ body <- dashboardBody(
                     tags$h3("Time to a microbial count"),
                     numericInput("tgt_cont_stoc_static", "Target log microbial count", value = 4,
                                  width = "50%"),
-                    column(12, plotOutput("plot_static_timedistrib")),
+                    column(12, plotlyOutput("plot_static_timedistrib")),
                     column(12, tableOutput("table_static_timedistrib"))
                 )
             )
@@ -239,10 +238,25 @@ body <- dashboardBody(
                         ),
                     box(title = "Model fit",
                         solidHeader = TRUE, status = "success",
-                        plotOutput("plot_static_fit") %>% withSpinner(color = "#2492A8"),
-                        tags$hr(),
-                        textInput("static_fit_xlab", "x-axis label", "Time"),
-                        textInput("static_fit_ylab", "y-axis label", "logN")
+                        dropdownButton(circle = TRUE, status = "success", 
+                                       icon = icon("gear"), width = "300px",
+                                       textInput("static_fit_xlab", "x-axis label", "Time"),
+                                       textInput("static_fit_ylab", "y-axis label", "logN"),
+                                       hr(),
+                                       colourInput("static_fit_linecol", "Line colour", "black"),
+                                       numericInput("static_fit_linesize", "Line size", 1, min = 0),
+                                       selectInput("static_fit_linetype", "Line type",
+                                                   choices = list("solid", "dashed", "dotted", "dotdash",
+                                                                  "longdash", "twodash"),
+                                                   selected = "solid"),
+                                       hr(),
+                                       colourInput("static_fit_pointcol", "Point colour", "black"),
+                                       numericInput("static_fit_pointsize", "Point size", 3, min = 0),
+                                       numericInput("static_fit_pointtype", "Point type", 16, 
+                                                    min = 0, max = 25, step = 1)
+                        ),
+                        br(),
+                        plotlyOutput("plot_static_fit") %>% withSpinner(color = "#2492A8"),
                         )
                 ),
                 fluidRow(
@@ -254,8 +268,8 @@ body <- dashboardBody(
                     ),
                     box(title = "Fit diagnostics", status = "warning",
                         solidHeader = TRUE, collapsible = TRUE,
-                        tags$h3("Residual plot"),
-                        plotOutput("static_fit_residual"),
+                        tags$h3("Residuals plot"),
+                        plotlyOutput("static_fit_residual"),
                         tags$hr(),
                         tags$h3("Histogram of the residuals"),
                         plotOutput("static_fit_resHist"),
@@ -293,26 +307,51 @@ body <- dashboardBody(
                 fluidRow(
                     box(title = "Primary model", solidHeader = TRUE,
                         status = "primary",
-                        numericInput("dynFit_N0", "N0", 10, min = 0, width = "30%"),
-                        checkboxInput("dynFit_N0_fix", "known?", width = "30%"),
+                        fluidRow(
+                            column(6,
+                                   numericInput("dynFit_N0", "N0 (CFU/g)", 10, min = 0)
+                            ),
+                            column(6,
+                                   checkboxInput("dynFit_N0_fix", "fixed?")
+                            )
+                        ),
+                        
                         bsTooltip("dynFit_N0", 
                                   "Initial microbial count",
                                   "right", options = list(container = "body")),
-                        tags$hr(),
-                        numericInput("dynFit_Q0", "Q0", 1e-3, min = 0, width = "30%"),
-                        checkboxInput("dynFit_Q0_fix", "known?", width = "30%"),
+                        br(),
+                        fluidRow(
+                            column(6,
+                                   numericInput("dynFit_Q0", "Q0 (·)", 1e-3, min = 0)
+                            ),
+                            column(6,
+                                   checkboxInput("dynFit_Q0_fix", "fixed?")
+                            )
+                        ),
                         bsTooltip("dynFit_Q0", 
                                   "Initial value of the variable describing the lag phase",
                                   "right", options = list(container = "body")),
-                        tags$hr(),
-                        numericInput("dynFit_muopt", "mu_opt", .5, min = 0, width = "30%"),
-                        checkboxInput("dynFit_muopt_fix", "known?", width = "30%"),
+                        br(),
+                        fluidRow(
+                            column(6,
+                                   numericInput("dynFit_muopt", "mu_opt (log10 CFU/h)", .5, min = 0)
+                            ),
+                            column(6,
+                                   checkboxInput("dynFit_muopt_fix", "fixed?")
+                            )
+                        ),
                         bsTooltip("dynFit_muopt", 
                                   "Maximum specific growth rate under optimal conditions",
                                   "right", options = list(container = "body")),
-                        tags$hr(),
-                        numericInput("dynFit_Nmax", "Nmax", 1e8, min = 0, width = "30%"),
-                        checkboxInput("dynFit_Nmax_fix", "known?", width = "30%"),
+                        br(),
+                        fluidRow(
+                            column(6,
+                                   numericInput("dynFit_Nmax", "Nmax (CFU/g)", 1e8, min = 0)
+                            ),
+                            column(6,
+                                   checkboxInput("dynFit_Nmax_fix", "fixed?")
+                            )
+                        ),
                         bsTooltip("dynFit_Nmax", 
                                   "Maximum microbial count in the stationary phase",
                                   "right", options = list(container = "body"))
@@ -473,25 +512,25 @@ body <- dashboardBody(
                     box(title = "Primary model", solidHeader = TRUE,
                         status = "primary",
                         numericInput("globalFit_N0", "N0", 10, min = 0, width = "30%"),
-                        checkboxInput("globalFit_N0_fix", "known?", width = "30%"),
+                        checkboxInput("globalFit_N0_fix", "fixed?", width = "30%"),
                         bsTooltip("globalFit_N0", 
                                   "Initial microbial count",
                                   "right", options = list(container = "body")),
                         tags$hr(),
                         numericInput("globalFit_Q0", "Q0", 1e-3, min = 0, width = "30%"),
-                        checkboxInput("globalFit_Q0_fix", "known?", width = "30%"),
+                        checkboxInput("globalFit_Q0_fix", "fixed?", width = "30%"),
                         bsTooltip("globalFit_Q0", 
                                   "Initial value of the variable describing the lag phase",
                                   "right", options = list(container = "body")),
                         tags$hr(),
                         numericInput("globalFit_muopt", "mu_opt", .5, min = 0, width = "30%"),
-                        checkboxInput("globalFit_muopt_fix", "known?", width = "30%"),
+                        checkboxInput("globalFit_muopt_fix", "fixed?", width = "30%"),
                         bsTooltip("globalFit_muopt", 
                                   "Maximum specific growth rate under optimal conditions",
                                   "right", options = list(container = "body")),
                         tags$hr(),
                         numericInput("globalFit_Nmax", "Nmax", 1e8, min = 0, width = "30%"),
-                        checkboxInput("globalFit_Nmax_fix", "known?", width = "30%"),
+                        checkboxInput("globalFit_Nmax_fix", "fixed?", width = "30%"),
                         bsTooltip("globalFit_Nmax", 
                                   "Maximum microbial count in the stationary phase",
                                   "right", options = list(container = "body"))
