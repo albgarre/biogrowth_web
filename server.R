@@ -1479,23 +1479,56 @@ server <- function(input, output, session) {
     
     ## Output of the results
     
-    output$dynFit_modelPlot <- renderPlot({
-        withProgress({
-            
-            if (input$dynFit_addFactor) {
-                plot(dynFit_model(),
-                     add_factor = input$dynFit_added_factor,
-                     label_y1 = input$dynFit_ylabel,
-                     label_y2 = input$dynFit_secylabel) + 
-                    xlab(input$dynFit_xlabel)
-            } else {
-                plot(dynFit_model()) + 
-                    xlab(input$dynFit_xlabel) +
-                    ylab(input$dynFit_ylabel)
-            }
-            
-        }, message = "Fitting the model")
+    output$dynFit_modelPlot <- renderPlotly({
         
+        ## Model prediction
+        
+        fig <- plot_ly()
+        fig <- fig %>% add_lines(x = dynFit_model()$best_prediction$simulation$time, 
+                                 y = dynFit_model()$best_prediction$simulation$logN,
+                                 line = list(width = input$dynFit_linesize, 
+                                             dash = input$dynFit_linetype, 
+                                             color = input$dynFit_linecol),
+                                 showlegend = FALSE)
+        
+        fig <- fig %>% add_markers(x = dynFit_model()$data$time,
+                                   y = dynFit_model()$data$logN,
+                                   showLegend = FALSE,
+                                   marker = list(color = input$dynFit_pointcol,
+                                                 size = input$dynFit_pointsize)
+                                   )
+        
+        ## Environmental condition
+        
+        if (input$dynFit_addFactor) {
+            
+            aa <- tibble(time = seq(0, max(dynFit_model()$best_prediction$simulation$time), length = 100),
+                         y = dynFit_model()$best_prediction$env_conditions[[input$dynPred_added_factor]](time)
+            )
+            
+            fig <- fig %>% add_lines(x = aa$time, y = aa$y, yaxis = "y2",
+                                     line = list(width = input$dynFit_linesize2, 
+                                                 dash = input$dynFit_linetype2, 
+                                                 color = input$dynFit_linecol2),
+                                     showlegend = FALSE)
+            
+        }
+        
+        fig <- fig %>% 
+            layout(yaxis2 = list(overlaying = "y",
+                                 # tickfont = list(color = "red"),
+                                 side = "right",
+                                 title = input$dynFit_secylabel
+            ),
+            xaxis = list(title = input$dynFit_xlabel),
+            yaxis = list(title = input$dynFit_ylabel),
+            showLegend = FALSE
+            )
+        
+        ##
+        
+        fig 
+
     })
     
     addPopover(session, "dynFit_modelPlot",

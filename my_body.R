@@ -384,13 +384,37 @@ body <- dashboardBody(
                         ),
                     box(title = "Fitted model", solidHeader = TRUE,
                         status = "success",
-                        plotOutput("dynFit_modelPlot") %>% withSpinner(color = "#2492A8"),
+                        plotlyOutput("dynFit_modelPlot") %>% withSpinner(color = "#2492A8"),
                         tags$hr(),
-                        checkboxInput("dynFit_addFactor", "Plot a factor?"),
-                        textInput("dynFit_added_factor", "What factor?", "temperature"),
+                        
                         textInput("dynFit_xlabel", "Label of x-axis", "Time"),
                         textInput("dynFit_ylabel", "Label of y-axis", "logN"),
-                        textInput("dynFit_secylabel", "Label of secondary axis", "temperature")
+                        colourInput("dynFit_linecol", "Line colour", "black"),
+                        numericInput("dynFit_linesize", "Line size", 2, min = 0),
+                        pickerInput("dynFit_linetype", "Line type",
+                                    list(solid = NA, dash = 'dash',
+                                         dot = 'dot', dashdot = 'dashdot')
+                        ),
+                        colourInput("dynFit_pointcol", "Point colour", "maroon"),
+                        numericInput("dynFit_pointsize", "Point size", 10, min = 0),
+                        hr(),
+                        prettySwitch("dynFit_addFactor", "Plot a factor?",
+                                     status = "success",
+                                     slim = TRUE),
+                        conditionalPanel(
+                            condition = "input.dynFit_addFactor",
+                            wellPanel(
+                                textInput("dynFit_added_factor", "What factor?", "temperature"),
+                                textInput("dynFit_secylabel", "Label of secondary axis", "temperature"),
+                                colourInput("dynFit_linecol2", "Line colour", "red"),
+                                numericInput("dynFit_linesize2", "Line size", 2, min = 0),
+                                pickerInput("dynFit_linetype2", "Line type",
+                                            list(solid = NA, dash = 'dash',
+                                                 dot = 'dot', dashdot = 'dashdot'),
+                                            selected = "dot"
+                                )
+                            )
+                        )
                         )
                 ),
                 fluidRow(
