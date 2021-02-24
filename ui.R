@@ -15,6 +15,7 @@ library(shinyWidgets)
 library(colourpicker)
 library(shinydashboardPlus)
 library(plotly)
+library(reactable)
 
 source("tableFileUI.R")
 source("tableFile.R")

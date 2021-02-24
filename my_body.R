@@ -12,6 +12,10 @@ body <- dashboardBody(
                     withMathJax(includeMarkdown("welcome_page.md"))
                     )
                 ),
+        ## Utils
+        tabItem(tabName = "utils",
+                infoBox(title = "Coming soon", icon = icon("hand-spock"), width = 12)
+        ),
         
         ## Static prediction -----------------------------------------------------------------
         
@@ -599,7 +603,7 @@ body <- dashboardBody(
                 fluidRow(
                     box(title = "Parameter estimates", solidHeader = TRUE,
                         status = "warning",
-                        tableOutput("globalFit_par_summary"),
+                        reactableOutput("globalFit_par_summary"),
                         tags$hr(),
                         tableOutput("globalFit_residualTable")
                     ),

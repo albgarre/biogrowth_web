@@ -776,7 +776,6 @@ server <- function(input, output, session) {
             select(Parameter, Estimate, `Std. Error`) %>%
             mutate(`CI 95% left` = Estimate - 1.96*`Std. Error`,
                    `CI 95% right` = Estimate + 1.96*`Std. Error`)
-        
     })
     
     addPopover(session, "card_fit_results",
@@ -914,6 +913,7 @@ server <- function(input, output, session) {
                    Af = 10^RMSE,
                    df = n_dat - n_par
             )
+        
         
     })
     
@@ -2134,7 +2134,7 @@ server <- function(input, output, session) {
         
     })
     
-    output$globalFit_par_summary <- renderTable({
+    output$globalFit_par_summary <- renderReactable({
         
         my_model <- globalFit_model()
         
@@ -2144,14 +2144,19 @@ server <- function(input, output, session) {
                 as_tibble(rownames = "Parameter") %>%
                 select(Parameter, Estimate, `Std. Error`) %>%
                 mutate(`CI 95% left` = Estimate - 1.96*`Std. Error`,
-                       `CI 95% right` = Estimate + 1.96*`Std. Error`)
+                       `CI 95% right` = Estimate + 1.96*`Std. Error`) %>%
+                mutate_all(~ prettyNum(., digits = 5)) %>%
+                reactable()
             
         } else {  # MCMC fit
             summary(my_model) %>%
-                as_tibble(rownames = "Index")
+                as_tibble(rownames = "Index") %>%
+                pivot_longer(-Index, names_to = "Parameter") %>%
+                pivot_wider(Parameter, Index) %>%
+                mutate_all(~ prettyNum(., digits = 5)) %>%
+                reactable()
         }
-        
-        
+
     })
     
     addPopover(session, "globalFit_par_summary",
