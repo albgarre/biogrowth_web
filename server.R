@@ -1,9 +1,11 @@
+
 library(tidyverse)
 library(biogrowth)
 library(readxl)
 library(cowplot)
 library(FME)
 library(thematic)
+library(reactable)
 
 source("tableFileUI.R")
 source("tableFile.R")
@@ -1225,15 +1227,17 @@ server <- function(input, output, session) {
                    col_types = "numeric")
     })
     
-    output$dynFit_plot_input <- renderPlot({
+    output$dynFit_plot_input <- renderPlotly({
         
-        dynFit_excel_frame() %>%
+        p <- dynFit_excel_frame() %>%
             gather(var, value, -time) %>%
             ggplot(aes(x = time, y = value)) +
             geom_line() +
             geom_point() +
             facet_wrap("var", scales = "free_y") +
             ylab("")
+        
+        ggplotly(p)
         
     })
     
@@ -1542,7 +1546,7 @@ server <- function(input, output, session) {
     )
     
     
-    output$dynFit_par_summary <- renderTable({
+    output$dynFit_par_summary <- renderReactable({
         
         my_model <- dynFit_model()
         
@@ -1552,11 +1556,18 @@ server <- function(input, output, session) {
                 as_tibble(rownames = "Parameter") %>%
                 select(Parameter, Estimate, `Std. Error`) %>%
                 mutate(`CI 95% left` = Estimate - 1.96*`Std. Error`,
-                       `CI 95% right` = Estimate + 1.96*`Std. Error`)
+                       `CI 95% right` = Estimate + 1.96*`Std. Error`) %>%
+                mutate_all(~ prettyNum(., digits = 5)) %>%
+                reactable()
             
         } else {  # MCMC fit
             summary(my_model) %>%
-                as_tibble(rownames = "Index")
+                as_tibble(rownames = "Index") %>%
+                pivot_longer(-Index, names_to = "Parameter") %>%
+                pivot_wider(Parameter, Index) %>%
+                mutate_all(~ prettyNum(., digits = 5)) %>%
+                reactable()
+            
         }
         
         

@@ -306,7 +306,7 @@ body <- dashboardBody(
                                   "right", options = list(container = "body"))
                     ),
                     box(status = "primary",
-                        plotOutput("dynFit_plot_input")
+                        plotlyOutput("dynFit_plot_input")
                     )
                 ),
                 fluidRow(
@@ -420,7 +420,7 @@ body <- dashboardBody(
                 fluidRow(
                     box(title = "Parameter estimates", solidHeader = TRUE,
                         status = "warning",
-                        tableOutput("dynFit_par_summary"),
+                        reactableOutput("dynFit_par_summary"),
                         tags$hr(),
                         tableOutput("dynFit_residualTable")
                         ),
