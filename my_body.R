@@ -218,7 +218,7 @@ body <- dashboardBody(
                 
                 ),
         
-        ## Static fit
+        ## Static fit ----------------------------------------------------------
         
         tabItem(tabName = "st_fit",
                 fluidRow(
@@ -490,7 +490,7 @@ body <- dashboardBody(
                 )
                 ),
         
-        ## Global fitting --------------------------------------------------------------------
+        ## Global fitting ------------------------------------------------------
         
         tabItem(tabName = "global_fit",
                 fluidRow(
@@ -500,7 +500,7 @@ body <- dashboardBody(
                         downloadLink("globalFit_download_example_count", "Download example")
                     ),
                     box(status = "primary",
-                        plotOutput("globalFit_plot_input_count")
+                        plotlyOutput("globalFit_plot_input_count")
                     )
                 ),
                 fluidRow(
@@ -510,7 +510,7 @@ body <- dashboardBody(
                         downloadLink("globalFit_download_example_env", "Download example")
                     ),
                     box(status = "primary",
-                        plotOutput("globalFit_plot_input_env")
+                        plotlyOutput("globalFit_plot_input_env")
                     )
                 ),
                 fluidRow(

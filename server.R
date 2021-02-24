@@ -1756,14 +1756,16 @@ server <- function(input, output, session) {
             map(., ~ read_excel(my_path, sheet = ., col_types = "numeric"))
     })
     
-    output$globalFit_plot_input_count <- renderPlot({
+    output$globalFit_plot_input_count <- renderPlotly({
         
-        globalFit_excel_frame_count() %>%
+        p <- globalFit_excel_frame_count() %>%
             imap_dfr(., ~ mutate(.x, exp = .y)) %>%
             ggplot(aes(x = time, y = logN, colour = exp)) +
             geom_point() +
             ylab("") +
             theme(legend.title = element_blank())
+        
+        ggplotly(p)
         
     })
     
@@ -1790,9 +1792,9 @@ server <- function(input, output, session) {
             map(., ~ read_excel(my_path, sheet = ., col_types = "numeric"))
     })
     
-    output$globalFit_plot_input_env <- renderPlot({
+    output$globalFit_plot_input_env <- renderPlotly({
         
-        globalFit_excel_frame_env() %>%
+        p <- globalFit_excel_frame_env() %>%
             map(., ~ gather(., var, value, -time)) %>%
             imap_dfr(., ~ mutate(.x, exp = .y)) %>%
             ggplot(aes(x = time, y = value, colour = exp)) +
@@ -1801,6 +1803,8 @@ server <- function(input, output, session) {
             facet_wrap("var", scales = "free_y") +
             ylab("") +
             theme(legend.title = element_blank())
+        
+        ggplotly(p)
         
     })
     
