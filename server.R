@@ -3,11 +3,15 @@ library(biogrowth)
 library(readxl)
 library(cowplot)
 library(FME)
+library(thematic)
 
 source("tableFileUI.R")
 source("tableFile.R")
 
 data("example_dynamic_growth")
+
+# thematic_on(font = "auto")
+# thematic_off()
 
 server <- function(input, output, session) {
     
@@ -129,6 +133,27 @@ server <- function(input, output, session) {
                      ~ tibble(Model = .y, 
                               `Target count` = input$static_tgt_count,
                               Time = .x)
+                     )
+        
+        
+    })
+    
+    output$static_countAtTimeTable <- renderTable({
+        
+        if (length(static_prediction_list()) == 0) {
+            
+            return(tibble())
+            
+        }
+        
+        static_prediction_list() %>%
+            map(.,
+                ~ predict_isothermal_growth(.$model, input$static_tgt_time, .$pars)
+                ) %>%
+            imap_dfr(.,
+                     ~ tibble(Model = .y, 
+                              Time = input$static_tgt_time,
+                              logN = .x$simulation$logN[[1]])
                      )
         
         
@@ -392,7 +417,7 @@ server <- function(input, output, session) {
                trigger = "click", placement = "left"
     )
     
-    output$static_fit_par <- renderTable({
+    output$static_fit_par <- renderTable(digits = -2, {
         
         summary(static_fit_results())$par %>%
             as_tibble(rownames = "Parameter") %>%

@@ -53,7 +53,12 @@ body <- dashboardBody(
                         solidHeader = TRUE, closable = FALSE,
                         numericInput("static_tgt_count", "Target count", 2),
                         tableOutput("static_timeToTable")
-                        )
+                        ),
+                    boxPlus(title = "Log count at time X", status = "success",
+                             solidHeader = TRUE, closable = FALSE,
+                             numericInput("static_tgt_time", "Time", 40),
+                             tableOutput("static_countAtTimeTable")
+                             )
                 )
                 ),
         
