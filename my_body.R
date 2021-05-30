@@ -12,16 +12,46 @@ body <- dashboardBody(
                     withMathJax(includeMarkdown("welcome_page.md"))
                     )
                 ),
-        ## Utils
+        
+        ## Utils ---------------------------------------------------------------
+        
         tabItem(tabName = "utils",
-                infoBox(title = "Coming soon", icon = icon("hand-spock"), width = 12)
+                fluidRow(
+                    boxPlus(title = "Q0 to lambda", status = "primary",
+                            solidHeader = TRUE, collapsible = FALSE, closable = FALSE,
+                            column(12,
+                                   numericInput("utils_in_Q0", "Q0 (.)", 1e-3, min = 0),
+                                   numericInput("utils_mu_1", "Growth rate (log CFU/h)",
+                                                .8, min = 0)
+                                   ),
+                            valueBoxOutput("utils_out_lambda", width = 12)
+                            ),
+                    boxPlus(title = "lambda to Q0", status = "primary",
+                            solidHeader = TRUE, collapsible = FALSE, closable = FALSE,
+                            column(12,
+                                   numericInput("utils_in_lambda", "Lag phase (h)", 10, min = 0),
+                                   numericInput("utils_mu_2", "Growth rate (log CFU/h)",
+                                                .6, min = 0)
+                                   ),
+                            valueBoxOutput("utils_out_Q0", width = 12)
+                            
+                            )
+                )
         ),
         
         ## Static prediction -----------------------------------------------------------------
         
         tabItem(tabName = "st_prediction",
                 fluidRow(
-                    boxPlus(title = "Model definition", status = "primary",
+                    boxPlus(title = tagList("Model definition",
+                                            actionBttn("help_static_prediction",
+                                                       label = NULL,
+                                                       style = "bordered",
+                                                       icon = icon("info"),
+                                                       size = "xs"
+                                                       )
+                                            ),
+                            status = "primary",
                         solidHeader = TRUE, collapsible = FALSE, closable = FALSE,
                         pickerInput(
                             "modelStaticPrediction",
@@ -37,9 +67,10 @@ body <- dashboardBody(
                                                                "If it already exists, replaces the curve"),
                                   "right", options = list(container = "body")),
                         actionButton("static_pred_addSim", "Add/Edit Simulation"),
-                        actionButton("static_pred_cleanUp", "Clean plot")
+                        actionButton("static_pred_cleanUp", "Clear plot")
                     ),
-                    boxPlus(title = "Model predictions", status = "success",
+                    boxPlus(title = "Model predictions",
+                            status = "success",
                         solidHeader = TRUE, closable = FALSE,
                         plotlyOutput("plot_static_prediction"),
                         dropdownButton(circle = TRUE, status = "success", 

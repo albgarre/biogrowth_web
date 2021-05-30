@@ -17,7 +17,53 @@ data("example_dynamic_growth")
 
 server <- function(input, output, session) {
     
+    ## Utils tab ---------------------------------------------------------------
+    
+    output$utils_out_lambda <- renderValueBox({
+        
+        lambda <- Q0_to_lambda(input$utils_in_Q0, input$utils_mu_1)
+        
+        valueBox(tagList(prettyNum(lambda, digits = 2), 
+                         tags$sup(style = "font-sice: 20px")
+                         ),
+                 "hours", icon = icon("line-chart"),
+                 width = 12,
+                 color = "teal")
+        
+    })
+    
+    output$utils_out_Q0 <- renderValueBox({
+        
+        q0 <- lambda_to_Q0(input$utils_in_lambda, input$utils_mu_2)
+        
+        valueBox(tagList(prettyNum(q0, digits = 3), 
+                         tags$sup(style = "font-sice: 20px")
+        ),
+        "(unitless)", icon = icon("line-chart"),
+        width = 12,
+        color = "teal")
+        
+    })
+    
+    
+    
     ## Static predictions -----------------------------------------------------
+    
+    ## Help page
+    
+    observeEvent(input$help_static_prediction,
+                 
+                 # print(getwd())
+                 showModal(
+                     modalDialog(
+                         withMathJax(includeMarkdown("./man/help_pages/help_static_prediction.md")),
+                         easyClose = TRUE,
+                         size = "l",
+                         footer = modalButton("Close")
+                     )
+                 )
+                 
+    )
     
     ## Dynamic model parameters
     
@@ -110,16 +156,16 @@ server <- function(input, output, session) {
         
     })
     
-    addPopover(session, "plot_static_prediction",
-               "Growth curves under static conditions",
-               paste("This plot shows the predicted growth curves for the models defined.",
-                     "The lines are coloured according to the names you have defined.",
-                     "To edit any line, you just have to redefine model parameters and use the same name.",
-                     "Note that the validity of the predictions depends on the validity of the model parameters.",
-                     "Also, these predictions (in principle) are only valid under static environmental conditions.",
-                     sep = " "),
-               trigger = "click"
-               )
+    # addPopover(session, "plot_static_prediction",
+    #            "Growth curves under static conditions",
+    #            paste("This plot shows the predicted growth curves for the models defined.",
+    #                  "The lines are coloured according to the names you have defined.",
+    #                  "To edit any line, you just have to redefine model parameters and use the same name.",
+    #                  "Note that the validity of the predictions depends on the validity of the model parameters.",
+    #                  "Also, these predictions (in principle) are only valid under static environmental conditions.",
+    #                  sep = " "),
+    #            trigger = "click"
+    #            )
     
     output$static_timeToTable <- renderTable({
         
