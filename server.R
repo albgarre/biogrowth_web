@@ -1108,10 +1108,22 @@ server <- function(input, output, session) {
                                      `Full Ratkowsky` = "fullRatkowsky",
                                      Zwietering = "Zwietering")),
                     numericInput(paste0(id, "_xmin"), "Xmin", 0),
-                    numericInput(paste0(id, "_xopt"), "Xopt (not for Ratkowsky)", 37),
-                    numericInput(paste0(id, "_xmax"), "Xmax (not for Zwietering)", 45),
-                    numericInput(paste0(id, "_n"), "n (not for Ratkowsky)", 1),
-                    numericInput(paste0(id, "_c"), "c (only for Ratkowsky)", 1),
+                    conditionalPanel(
+                        condition = paste0("input.", id, "_model != 'fullRatkowsky'"),
+                        numericInput(paste0(id, "_xopt"), "Xopt", 37)
+                    ),
+                    conditionalPanel(
+                        condition = paste0("input.", id, "_model != 'Zwietering'"),
+                        numericInput(paste0(id, "_xmax"), "Xmax", 45),
+                    ),
+                    conditionalPanel(
+                        condition = paste0("input.", id, "_model != 'fullRatkowsky'"),
+                        numericInput(paste0(id, "_n"), "n", 1)
+                    ),
+                    conditionalPanel(
+                        condition = paste0("input.", id, "_model == 'fullRatkowsky'"),
+                        numericInput(paste0(id, "_c"), "c", 1)
+                        ),
                     tags$hr(),
                     id = id
                 )
