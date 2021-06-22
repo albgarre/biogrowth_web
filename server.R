@@ -220,7 +220,45 @@ server <- function(input, output, session) {
         }
     )
     
-    ## Stochastic static predictions -------------------------------------------------
+    ## Stochastic static predictions -------------------------------------------
+    
+    ## Reset seed
+    
+    observeEvent(input$stoc_resetSeed, {
+        set.seed(1242)
+        print("Seed was reset")
+        }
+    )
+    
+    ## Help pages
+    
+    observeEvent(input$help_stoc_prediction_definition,
+                 
+                 # print(getwd())
+                 showModal(
+                     modalDialog(
+                         withMathJax(includeMarkdown("./man/help_pages/help_stoc_prediction_definition.md")),
+                         easyClose = TRUE,
+                         size = "l",
+                         footer = modalButton("Close")
+                     )
+                 )
+                 
+    )
+    
+    observeEvent(input$help_stoc_prediction_result,
+                 
+                 # print(getwd())
+                 showModal(
+                     modalDialog(
+                         withMathJax(includeMarkdown("./man/help_pages/help_stoc_prediction_result.md")),
+                         easyClose = TRUE,
+                         size = "l",
+                         footer = modalButton("Close")
+                     )
+                 )
+                 
+    )
     
     ## Dynamic parameter selector
     
@@ -240,16 +278,29 @@ server <- function(input, output, session) {
                       )
         
         map(1:nrow(my_pars),
-             ~ fluidRow(
-                 h4(my_pars$par_name[.]),
-                 numericInput(paste0("stoc_par_mean_", my_pars$par[.]), "Mean", my_pars$default[.]),
-                 numericInput(paste0("stoc_par_sd_", my_pars$par[.]), "SD", .1*my_pars$default[.]),
-                 selectInput(paste0("stoc_par_transf_", my_pars$par[.]), "Scale",
-                             choices = list(`Square-root` = "sqrt",
-                                            `log-transform` = "log",
-                                            `No transformation` = "original"),
-                             selected = my_pars$scale[.])
-             )
+            ~ tagList(
+                fluidRow(column(12, h4(my_pars$par_name[.]))),
+                fluidRow(column(6, numericInput(paste0("stoc_par_mean_", my_pars$par[.]), "Mean", my_pars$default[.])),
+                         column(6, numericInput(paste0("stoc_par_sd_", my_pars$par[.]), "SD", .1*my_pars$default[.]))),
+                fluidRow(column(12, selectInput(paste0("stoc_par_transf_", my_pars$par[.]), "Scale",
+                                                      choices = list(`Square-root` = "sqrt",
+                                                                     `log-transform` = "log",
+                                                                     `No transformation` = "original"),
+                                                      selected = my_pars$scale[.]
+                                                )
+                                )
+                )
+            )
+             # ~ fluidRow(
+             #     h4(my_pars$par_name[.]),
+             #     numericInput(paste0("stoc_par_mean_", my_pars$par[.]), "Mean", my_pars$default[.]),
+             #     numericInput(paste0("stoc_par_sd_", my_pars$par[.]), "SD", .1*my_pars$default[.]),
+                 # selectInput(paste0("stoc_par_transf_", my_pars$par[.]), "Scale",
+                 #             choices = list(`Square-root` = "sqrt",
+                 #                            `log-transform` = "log",
+                 #                            `No transformation` = "original"),
+                 #             selected = my_pars$scale[.])
+             # )
              
         )
     })
@@ -312,18 +363,18 @@ server <- function(input, output, session) {
         
     })
     
-    addPopover(session, "plot_static_prediction_stoc",
-               "Stochastic growth curves under static conditions",
-               paste("This plot shows the prediction intervals according to the variation in the model parameters.",
-                     "The solid line represents the median of the simulations.",
-                     "The two dashed areas represent the area between the 10th and 90th, and 5th and 95th intervals.",
-                     "The intervals are estimated by forward propagation using Monte Carlo simulations.",
-                     "It is advised to repeat the calculations for with the same number of simulations. If the results vary, the number of simulations should be increased.",
-                     "Note that the simulations are valid only for static conditions.",
-                     "Also be mindful about what the variation of the parameters represent.",
-                     sep = " "),
-               trigger = "click", placement = "left"
-    )
+    # addPopover(session, "plot_static_prediction_stoc",
+    #            "Stochastic growth curves under static conditions",
+    #            paste("This plot shows the prediction intervals according to the variation in the model parameters.",
+    #                  "The solid line represents the median of the simulations.",
+    #                  "The two dashed areas represent the area between the 10th and 90th, and 5th and 95th intervals.",
+    #                  "The intervals are estimated by forward propagation using Monte Carlo simulations.",
+    #                  "It is advised to repeat the calculations for with the same number of simulations. If the results vary, the number of simulations should be increased.",
+    #                  "Note that the simulations are valid only for static conditions.",
+    #                  "Also be mindful about what the variation of the parameters represent.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "left"
+    # )
     
     output$plot_static_timedistrib <- renderPlotly({
         
@@ -332,18 +383,18 @@ server <- function(input, output, session) {
         
     })
     
-    addPopover(session, "plot_static_timedistrib",
-               "Distributions of time to reach the selected microbial count",
-               paste("This plot shows an estimation of the treatment time needed to reach some microbial count",
-                     "Because simulations are stochastic, the result is a probability distribution according to the variation in the model parameters",
-                     "The distribution is estimated using forward propagation with Monte Carlo simulations.",
-                     "You should increase the number of iterations until the histogram is 'reasonably' smooth",
-                     "The read line shows the median of the histogram, and the grey lines the 90th and and 10th quantiles.",
-                     "Note that the simulations are valid only for static conditions.",
-                     "Also be mindful about what the variation of the parameters represent.",
-                     sep = " "),
-               trigger = "click", placement = "left"
-    )
+    # addPopover(session, "plot_static_timedistrib",
+    #            "Distributions of time to reach the selected microbial count",
+    #            paste("This plot shows an estimation of the treatment time needed to reach some microbial count",
+    #                  "Because simulations are stochastic, the result is a probability distribution according to the variation in the model parameters",
+    #                  "The distribution is estimated using forward propagation with Monte Carlo simulations.",
+    #                  "You should increase the number of iterations until the histogram is 'reasonably' smooth",
+    #                  "The read line shows the median of the histogram, and the grey lines the 90th and and 10th quantiles.",
+    #                  "Note that the simulations are valid only for static conditions.",
+    #                  "Also be mindful about what the variation of the parameters represent.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "left"
+    # )
     
     output$table_static_timedistrib <- renderTable({
         
@@ -964,7 +1015,24 @@ server <- function(input, output, session) {
     })
     
     
-    ## Dynamic prediction -----------------------------------------
+    ## Dynamic prediction ------------------------------------------------------
+    
+    ## Help page
+    
+    observeEvent(input$help_dyna_prediction,
+                 
+                 showModal(
+                     modalDialog(
+                         withMathJax(includeMarkdown("./man/help_pages/help_dyna_prediction.md")),
+                         easyClose = TRUE,
+                         size = "l",
+                         footer = modalButton("Close")
+                     )
+                 )
+                 
+    )
+    
+    
     
     ## Data input
     

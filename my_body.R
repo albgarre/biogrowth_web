@@ -97,12 +97,20 @@ body <- dashboardBody(
                 )
                 ),
         
-        ## Stochastic static prediction
+        ## Stochastic static prediction ----------------------------------------
         
         tabItem(
             tabName = "stoc_prediction",
             fluidRow(
-                boxPlus(title = "Model definition", status = "primary",
+                boxPlus(title = tagList("Model definition",
+                                        actionBttn("help_stoc_prediction_definition",
+                                                   label = NULL,
+                                                   style = "bordered",
+                                                   icon = icon("info"),
+                                                   size = "xs"
+                                        )
+                                        ), 
+                        status = "primary",
                     solidHeader = TRUE, closable = FALSE,
                     pickerInput(
                         "mosdelStaticPredictionStoc",
@@ -114,10 +122,23 @@ body <- dashboardBody(
                     ),
                     numericInput("max_time_stoc_static", "Maximum time", value = 80, min = 0),
                     numericInput("n_sims_static", "Number of simulations", value = 1000, min = 0),
-                    actionButton("stoc_calculate", "Calculate")
+                    actionButton("stoc_calculate", "Calculate"),
+                    actionButton("stoc_resetSeed", "Reset seed")
                 ),
-                boxPlus(title = "Stochastic predictions", status = "success",
+                boxPlus(title = tagList("Stochastic predictions",
+                                        actionBttn("help_stoc_prediction_result",
+                                                   label = NULL,
+                                                   style = "bordered",
+                                                   icon = icon("info"),
+                                                   size = "xs"
+                                        )
+                        ),
+                        status = "success",
                         closable = FALSE, solidHeader = TRUE,
+                        # fluidRow(
+                        #     column(8, tags$h3("Stochastic growth curve")),
+                        #     column(4, actionBttn("help_stoc_plot", icon = icon("info")))
+                        # ),
                     tags$h3("Stochastic growth curve"),
                     dropdownButton(circle = TRUE, status = "success", 
                                    icon = icon("gear"), width = "300px",
@@ -138,7 +159,7 @@ body <- dashboardBody(
                     downloadBttn("static_stoc_down", label = "Export quantiles", 
                                  color = "success", style = "simple"),
                     tags$hr(),
-                    tags$h3("Time to a microbial count"),
+                    tags$h3("Time to reach a microbial count"),
                     numericInput("tgt_cont_stoc_static", "Target log microbial count", value = 4,
                                  width = "50%"),
                     column(12, plotlyOutput("plot_static_timedistrib")),
@@ -151,7 +172,15 @@ body <- dashboardBody(
         
         tabItem(tabName = "dyna_prediction",
                 fluidRow(
-                    boxPlus(title = "Data input", solidHeader = TRUE,
+                    boxPlus(title = tagList("Data input", 
+                                            actionBttn("help_dyna_prediction",
+                                                       label = NULL,
+                                                       style = "bordered",
+                                                       icon = icon("info"),
+                                                       size = "xs"
+                                            )
+                                            ),
+                            solidHeader = TRUE,
                         status = "primary", closable = FALSE,
                         fileInput("dynPred_excel_file", "Excel file"),
                         textInput("dynPred_excel_sheet", "Sheet name", "Sheet1"),

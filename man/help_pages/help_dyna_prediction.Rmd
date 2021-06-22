@@ -1,0 +1,45 @@
+---
+title: "Input for dynamic prediction"
+author: ""
+date: ""
+output: md_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Input for dynamic prediction
+
+## Input data
+
+The user must input the (dynamic) environmental conditions to use for the model predictions. These are defined using an MS Excel file with the following restrictions:
+
+* All the data must be in a single Excel sheet.
+* There should not be empty columns or rows in the sheet.
+* No additional data (other than the values of the environmental conditions) should be present in the sheet.
+* The sheet must contain a column named `time` including the elapsed time.
+* It has to contain one additional column per environmental condition. The tool can handle an arbitrary number of environmental conditions.
+* The first row must provide the column names.
+* The remaining rows define the value of each environmental condition at the elapsed time. Their values for intermediate values is calculated by linear interpolation. For values outside the range defined by `time`, the value of the closest limit is used.
+
+Clicking the `Download example` link, downloads an example file with two environmental conditions: temperature and pH.
+
+## Input parameters
+
+aa
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

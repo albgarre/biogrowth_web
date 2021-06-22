@@ -1,0 +1,44 @@
+---
+title: "Growth prediction under static conditions with parameter uncertainty"
+author: ""
+date: ""
+output: md_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Growth prediction under static conditions with parameter uncertainty
+
+## Method
+
+The confidence interval of the predictions is calculated by forward uncertainty propagation based Monte Carlo simulations. First, one has to define the distribution of the model parameters in the `Model definition` box. Each parameter is defined using a normal distribution, so it requires two parameters: its mean value and its standard deviation. The normal distribution can also be defined in log- or sqrt-scales. Note that, in this case, the mean is defined in the transformed scale. That is, a mean of 2 in sqrt scale implies a mean of 4 $2^2$ in the original scale of the parameter.
+
+## Convergence of the solution
+
+This module uses a numeric algorithm (Monte Carlo simulations) to estimate the confidence interval of the predictions. Therefore, its convergence is strongly reliant on the number of Monte Carlo simulations, which is defined in the numeric input `Number of iterations`. Convergence can be checked by repeating the calculations several times, observing that the relevant quantities are stable. Moreover, a visual inspection of the confidence interval of the predictions or the histogram can already indicate a lack of convergence (the plots are not *smooth*).
+
+For reproducibility, the module includes the `Reset seed` button to set the status of the pRNG. It is recommended that, once the convergence has been checked, the results are reported after reseting the seed. Otherwise, it is unlikely other researchers obtain the same results.
+
+### Interpretation of the model parameters
+
+* `log N0`: Decimal logarithm of the initial population size (in log CFU/g).
+* `log Nmax`: Maximum population size in the stationary growth phase (in log CFU/g).
+* `C`: Difference between the logarithm of the initial population size and the logarithm of the population size during the stationary phase (in log CFU/g).
+* `mu`: Maximum growth rate during the exponential growth phase. Note that this parameter must be defined in log10 scale, being the slope of the curve during the exponential phase in the $\log N$ vs $t$ plot. This parameter can be calculated from the specific growth rate dividing the latter by $\ln 10$.
+* `lambda`: Duration of the lag phase (in hours). This parameter is defined as the intersection between a horizontal line with intercept $\log N_0$ and a straight line tangential to the growth curve at the point of maximum growth rate.
+* `nu`: Shape factor of the Richards model. Lower values of this parameter result in a sharper transition between each growth phase.
+
+
+
+
+
+
+
+
+
+
+
+
+
