@@ -220,7 +220,15 @@ body <- dashboardBody(
                 ),
                 
                 fluidRow(
-                    boxPlus(title = "Prediction", closable = FALSE,
+                    boxPlus(title = tagList("Prediction", 
+                                            actionBttn("help_dyna_prediction_res",
+                                                       label = NULL,
+                                                       style = "bordered",
+                                                       icon = icon("info"),
+                                                       size = "xs"
+                                            )
+                                            ),
+                            closable = FALSE,
                         solidHeader = TRUE, status = "success",
                         actionButton("dynPred_calculate", "Calculate!"),
                         tags$hr(),
@@ -292,7 +300,15 @@ body <- dashboardBody(
                     )
                 ),
                 fluidRow(
-                    box(title = "Model parameters",
+                    box(title = tagList("Model parameters", 
+                                        actionBttn("help_dyna_fit_pars",
+                                                   label = NULL,
+                                                   style = "bordered",
+                                                   icon = icon("info"),
+                                                   size = "xs"
+                                        )
+                                        ),
+                        
                         solidHeader = TRUE, status = "primary",
                         selectInput(
                             "model_static_fit",
@@ -335,7 +351,15 @@ body <- dashboardBody(
                         tags$hr(),
                         tableOutput("static_fit_residual_table")
                     ),
-                    box(title = "Fit diagnostics", status = "warning",
+                    box(title = tagList("Fit diagnostics", 
+                                        actionBttn("help_dyna_fit_diag",
+                                                   label = NULL,
+                                                   style = "bordered",
+                                                   icon = icon("info"),
+                                                   size = "xs"
+                                        )
+                                        ),
+                        status = "warning",
                         solidHeader = TRUE, collapsible = TRUE,
                         tags$h3("Residuals plot"),
                         plotlyOutput("static_fit_residual"),

@@ -1032,7 +1032,18 @@ server <- function(input, output, session) {
                  
     )
     
-    
+    observeEvent(input$help_dyna_prediction_res,
+                 
+                 showModal(
+                     modalDialog(
+                         withMathJax(includeMarkdown("./man/help_pages/help_dyna_prediction_res.md")),
+                         easyClose = TRUE,
+                         size = "l",
+                         footer = modalButton("Close")
+                     )
+                 )
+                 
+    )
     
     ## Data input
     
@@ -1274,14 +1285,14 @@ server <- function(input, output, session) {
         
     })
     
-    addPopover(session, "dynPred_plot_growth",
-               "Growth curve under dynamic conditions",
-               paste("This plot shows the predicted microbial count under dynamic conditions.",
-                     "The curve may deviate from the sigmoidal curve due to the variation of the environmental factors",
-                     "Also, the curve may have a lag or stationary phase due to the inhibition by the environmental fators, not because of the usual interpretation under static conditions.",
-                     sep = " "),
-               trigger = "click", placement = "left"
-    )
+    # addPopover(session, "dynPred_plot_growth",
+    #            "Growth curve under dynamic conditions",
+    #            paste("This plot shows the predicted microbial count under dynamic conditions.",
+    #                  "The curve may deviate from the sigmoidal curve due to the variation of the environmental factors",
+    #                  "Also, the curve may have a lag or stationary phase due to the inhibition by the environmental fators, not because of the usual interpretation under static conditions.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "left"
+    # )
     
     
     output$dynPred_gammaPlot <- renderPlotly({
@@ -1299,15 +1310,15 @@ server <- function(input, output, session) {
             
     })
     
-    addPopover(session, "dynPred_gammaPlot",
-               "Variation of the gamma factors",
-               paste("This plot shows the predicted variation of the gamma factors throughout storage.",
-                     "In the gamma approach, each environmental factor acts as a correction factor between 0 and 1 that reduces the growth rate.",
-                     "Hence, this plot illustrates which is the most limiting factor for each time point, and how large is its impact.",
-                     "Note that this plot only shows the effect of the gamma factors. The lag phase can also be a very relevant limiting factor.",
-                     sep = " "),
-               trigger = "click", placement = "left"
-    )
+    # addPopover(session, "dynPred_gammaPlot",
+    #            "Variation of the gamma factors",
+    #            paste("This plot shows the predicted variation of the gamma factors throughout storage.",
+    #                  "In the gamma approach, each environmental factor acts as a correction factor between 0 and 1 that reduces the growth rate.",
+    #                  "Hence, this plot illustrates which is the most limiting factor for each time point, and how large is its impact.",
+    #                  "Note that this plot only shows the effect of the gamma factors. The lag phase can also be a very relevant limiting factor.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "left"
+    # )
     
     
     
@@ -1330,6 +1341,34 @@ server <- function(input, output, session) {
     )
     
     ## Dynamic fitting -------------------------------------------
+    
+    ## Help page
+    
+    observeEvent(input$help_dyna_fit_pars,
+                 
+                 showModal(
+                     modalDialog(
+                         withMathJax(includeMarkdown("./man/help_pages/help_dyna_fit_pars.md")),
+                         easyClose = TRUE,
+                         size = "l",
+                         footer = modalButton("Close")
+                     )
+                 )
+                 
+    )
+    
+    observeEvent(input$help_dyna_fit_diag,
+                 
+                 showModal(
+                     modalDialog(
+                         withMathJax(includeMarkdown("./man/help_pages/help_dyna_fit_diag.md")),
+                         easyClose = TRUE,
+                         size = "l",
+                         footer = modalButton("Close")
+                     )
+                 )
+                 
+    )
     
     ## Data input
     
@@ -1661,15 +1700,15 @@ server <- function(input, output, session) {
 
     })
     
-    addPopover(session, "dynFit_modelPlot",
-               "Fitted vs observed counts under dynamic conditions",
-               paste("This plot compares the fitted model against the observed counts under dynamic conditions",
-                     "These points were used for parameter estimation, so the model should fit the data reasonably well.",
-                     "If it doesn't, please try different starting values for the model parameters.",
-                     "Alternativelly, please change the values of the fixed model parameters.",
-                     sep = " "),
-               trigger = "click", placement = "left", options = list(container = "body")
-    )
+    # addPopover(session, "dynFit_modelPlot",
+    #            "Fitted vs observed counts under dynamic conditions",
+    #            paste("This plot compares the fitted model against the observed counts under dynamic conditions",
+    #                  "These points were used for parameter estimation, so the model should fit the data reasonably well.",
+    #                  "If it doesn't, please try different starting values for the model parameters.",
+    #                  "Alternativelly, please change the values of the fixed model parameters.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "left", options = list(container = "body")
+    # )
     
     
     output$dynFit_par_summary <- renderReactable({
@@ -1699,16 +1738,16 @@ server <- function(input, output, session) {
         
     })
     
-    addPopover(session, "dynFit_par_summary",
-               "Parameter estimates under dynamic conditions",
-               paste("This table reports the estimated parameter values and standard errors",
-                     "For non-linear regression, CI are calculated as E(X) +/- 1.96*SE(X)",
-                     "For MCMC models, they are calculated as the quantiles of the posterior distribution.",
-                     "In case some cells have 'NA' values, consider using more realistic starting values, or fixing some parameters.",
-                     "Moreover, before blindly using these parameters, it is advisable to check the model diagnostics.",
-                     sep = " "),
-               trigger = "click", placement = "right", options = list(container = "body")
-    )
+    # addPopover(session, "dynFit_par_summary",
+    #            "Parameter estimates under dynamic conditions",
+    #            paste("This table reports the estimated parameter values and standard errors",
+    #                  "For non-linear regression, CI are calculated as E(X) +/- 1.96*SE(X)",
+    #                  "For MCMC models, they are calculated as the quantiles of the posterior distribution.",
+    #                  "In case some cells have 'NA' values, consider using more realistic starting values, or fixing some parameters.",
+    #                  "Moreover, before blindly using these parameters, it is advisable to check the model diagnostics.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "right", options = list(container = "body")
+    # )
     
     output$dynFit_residualTable <- renderTable(digits = 3, {
         
@@ -1785,14 +1824,14 @@ server <- function(input, output, session) {
 
     })
     
-    addPopover(session, "dynFit_resPlot",
-               "Residuals plot",
-               paste("This plot illustrates the residuals of the model",
-                     "They should be distributed around the origin with constant variance.",
-                     "The blue line shows a trend line, which may help identifying variations with respect to the ideal trend.",
-                     sep = " "),
-               trigger = "click", placement = "left", options = list(container = "body")
-    )
+    # addPopover(session, "dynFit_resPlot",
+    #            "Residuals plot",
+    #            paste("This plot illustrates the residuals of the model",
+    #                  "They should be distributed around the origin with constant variance.",
+    #                  "The blue line shows a trend line, which may help identifying variations with respect to the ideal trend.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "left", options = list(container = "body")
+    # )
     
     output$dynFit_resHist <- renderPlot({
         
@@ -1828,15 +1867,15 @@ server <- function(input, output, session) {
         
     }) 
     
-    addPopover(session, "dynFit_resHist",
-               "Histogram of the residuals",
-               paste("This plot shows a histogram of the residuals.",
-                     "They should be normally distributed with mean zero",
-                     "The blue line shows the pdf of a normal distribution with the same mean and variance as the residuals.",
-                     "The histogram should adjust 'reasonably well' to the pdf.",
-                     sep = " "),
-               trigger = "click", placement = "left", options = list(container = "body")
-    )
+    # addPopover(session, "dynFit_resHist",
+    #            "Histogram of the residuals",
+    #            paste("This plot shows a histogram of the residuals.",
+    #                  "They should be normally distributed with mean zero",
+    #                  "The blue line shows the pdf of a normal distribution with the same mean and variance as the residuals.",
+    #                  "The histogram should adjust 'reasonably well' to the pdf.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "left", options = list(container = "body")
+    # )
     
     output$dynFit_shapiro <- renderText({
         
@@ -1880,27 +1919,27 @@ server <- function(input, output, session) {
         
     })
     
-    addPopover(session, "dynFit_MCMC_chain",
-               "Convergence of the Markov chain",
-               paste("This plot shows the evolution of the Markov chain.",
-                     "The plot should look like 'noise', without any obvious trend.",
-                     "If it does not, it is recommended to increase the number of MC samples.",
-                     "Alternatively, one could change the starting values or the fixed parameters.",
-                     sep = " "),
-               trigger = "click", placement = "left", options = list(container = "body")
-    )
+    # addPopover(session, "dynFit_MCMC_chain",
+    #            "Convergence of the Markov chain",
+    #            paste("This plot shows the evolution of the Markov chain.",
+    #                  "The plot should look like 'noise', without any obvious trend.",
+    #                  "If it does not, it is recommended to increase the number of MC samples.",
+    #                  "Alternatively, one could change the starting values or the fixed parameters.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "left", options = list(container = "body")
+    # )
     
     output$dynFit_MCMC_pairs <- renderPlot({
         pairs(dynFit_model()$fit_results)
     })
     
-    addPopover(session, "dynFit_MCMC_pairs",
-               "Posterior distribution of the parameters",
-               paste("This plot illustrates the posterior distribution of the model parameters.",
-                     "The histograms and pairs plot should be 'smooth'. Otherwise, parameter estimates may be unreliable.",
-                     sep = " "),
-               trigger = "click", placement = "left", options = list(container = "body")
-    )
+    # addPopover(session, "dynFit_MCMC_pairs",
+    #            "Posterior distribution of the parameters",
+    #            paste("This plot illustrates the posterior distribution of the model parameters.",
+    #                  "The histograms and pairs plot should be 'smooth'. Otherwise, parameter estimates may be unreliable.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "left", options = list(container = "body")
+    # )
     
     observeEvent(input$dynFit_seed, {
         print("Seed back to normal")

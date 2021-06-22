@@ -24,8 +24,3 @@ following restrictions:
 
 Clicking the `Download example` link, downloads an example file with two
 environmental conditions: temperature and pH.
-
-Input parameters
-----------------
-
-aa
