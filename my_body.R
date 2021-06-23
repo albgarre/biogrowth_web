@@ -409,7 +409,7 @@ body <- dashboardBody(
                             )
                         ),
                         
-                        bsTooltip("dynFit_N0", 
+                        bsTooltip("dynFit_N0",
                                   "Initial microbial count",
                                   "right", options = list(container = "body")),
                         br(),
@@ -421,7 +421,7 @@ body <- dashboardBody(
                                    checkboxInput("dynFit_Q0_fix", "fixed?")
                             )
                         ),
-                        bsTooltip("dynFit_Q0", 
+                        bsTooltip("dynFit_Q0",
                                   "Initial value of the variable describing the lag phase",
                                   "right", options = list(container = "body")),
                         br(),
