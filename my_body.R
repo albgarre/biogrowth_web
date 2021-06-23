@@ -572,35 +572,44 @@ body <- dashboardBody(
                                   "right", options = list(container = "body"))
                     ),
                     box(
-                        plotOutput("card_plot_input")
+                        plotlyOutput("card_plot_input")
                     )
                 ),
                 fluidRow(
                     box(width = 12, title = "Model definition", 
                         solidHeader = TRUE, status = "primary",
-                        actionButton("card_update", "Update"),
-                        tags$hr(),
+                        # tags$hr(),
                         fluidRow(
                             column(6,
                                    numericInput("card_muopt", "mu_opt", 0.5)
                                    ),
                             column(6,
-                                   checkboxInput("card_muopt_fix", "fixed?")
+                                   awesomeCheckbox("card_muopt_fix", "fixed?")
                                    )
                             
                         ),
-                        tags$div(id = 'cardPlaceholder') ,
-                        selectInput("card_transformation", "Transformation",
-                                    list(`Square root` = "sq", 
-                                         `Log transform` = "log", 
-                                         `No tranformation` = "none"),
-                                    width = "50%"
+                        fluidRow(
+                            column(6,
+                                   selectInput("card_transformation", "Transformation",
+                                               list(`Square root` = "sq", 
+                                                    `Log transform` = "log", 
+                                                    `No tranformation` = "none")
+                                               )
+                                   )
                         ),
-                        bsTooltip("card_transformation", 
-                                  paste("By default, the SSE of the square root of the growth rate is minimized. That can be changed here.",
-                                        "Be mindful of the distribution of the residuals"),
-                                  "right", options = list(container = "body")),
+                        # hr(),
+                        fluidRow(
+                            column(6,
+                                   actionButton("card_update", "Update parameters"),
+                                   )
+                        ),
+                        
+                        # bsTooltip("card_transformation", 
+                        #           paste("By default, the SSE of the square root of the growth rate is minimized. That can be changed here.",
+                        #                 "Be mindful of the distribution of the residuals"),
+                        #           "right", options = list(container = "body")),
                         tags$hr(),
+                        tags$div(id = 'cardPlaceholder') ,
                         actionButton("card_fitModel", "Fit model")
                     )
                     

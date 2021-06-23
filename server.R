@@ -693,14 +693,16 @@ server <- function(input, output, session) {
                    col_types = "numeric")
     })
     
-    output$card_plot_input <- renderPlot({
+    output$card_plot_input <- renderPlotly({
         
-        card_excel_frame() %>%
+        p <- card_excel_frame() %>%
             gather(var, value, -mu) %>%
             ggplot() +
             geom_point(aes(x = value, y = mu)) +
             facet_wrap("var", scales = "free_x") +
             xlab("")
+        
+        ggplotly(p)
         
     })
     
@@ -756,7 +758,7 @@ server <- function(input, output, session) {
                                numericInput(paste0(id, "_xmin"), "Xmin", 0)
                         ),
                         column(6,
-                               checkboxInput(paste0(id, "_xmin_fix"), "fixed?")
+                               awesomeCheckbox(paste0(id, "_xmin_fix"), "fixed?")
                         )
                     ),
                     fluidRow(
@@ -764,7 +766,7 @@ server <- function(input, output, session) {
                                numericInput(paste0(id, "_xopt"), "Xopt (not in Ratkowsky)", 37)
                         ),
                         column(6,
-                               checkboxInput(paste0(id, "_xopt_fix"), "fixed?")
+                               awesomeCheckbox(paste0(id, "_xopt_fix"), "fixed?")
                         )
                     ),
                     fluidRow(
@@ -772,7 +774,7 @@ server <- function(input, output, session) {
                                numericInput(paste0(id, "_xmax"), "Xmax (not in Zwietering)", 45)
                         ),
                         column(6,
-                               checkboxInput(paste0(id, "_xmax_fix"), "fixed?")
+                               awesomeCheckbox(paste0(id, "_xmax_fix"), "fixed?")
                         )
                     ),
                     fluidRow(
@@ -780,7 +782,7 @@ server <- function(input, output, session) {
                                numericInput(paste0(id, "_n"), "n (not in Cardinal)", 1)
                         ),
                         column(6,
-                               checkboxInput(paste0(id, "_n_fix"), "fixed?")
+                               awesomeCheckbox(paste0(id, "_n_fix"), "fixed?")
                         )
                     ),
                     fluidRow(
@@ -788,7 +790,7 @@ server <- function(input, output, session) {
                                numericInput(paste0(id, "_c"), "c (only Ratkowsky)", .1)
                         ),
                         column(6,
-                               checkboxInput(paste0(id, "_c_fix"), "fixed?")
+                               awesomeCheckbox(paste0(id, "_c_fix"), "fixed?")
                         )
                     ),
                     tags$hr(),
