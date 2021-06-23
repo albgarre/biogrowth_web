@@ -301,7 +301,7 @@ body <- dashboardBody(
                 ),
                 fluidRow(
                     box(title = tagList("Model parameters", 
-                                        actionBttn("help_dyna_fit_pars",
+                                        actionBttn("help_stat_fit_pars",
                                                    label = NULL,
                                                    style = "bordered",
                                                    icon = icon("info"),
@@ -352,7 +352,7 @@ body <- dashboardBody(
                         tableOutput("static_fit_residual_table")
                     ),
                     box(title = tagList("Fit diagnostics", 
-                                        actionBttn("help_dyna_fit_diag",
+                                        actionBttn("help_stat_fit_diag",
                                                    label = NULL,
                                                    style = "bordered",
                                                    icon = icon("info"),

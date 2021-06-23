@@ -413,6 +413,34 @@ server <- function(input, output, session) {
     
     ## Static fitting -----------------------------------------------------
     
+    ## Help page
+    
+    observeEvent(input$help_stat_fit_pars,
+                 
+                 showModal(
+                     modalDialog(
+                         withMathJax(includeMarkdown("./man/help_pages/help_stat_fit_pars.md")),
+                         easyClose = TRUE,
+                         size = "l",
+                         footer = modalButton("Close")
+                     )
+                 )
+                 
+    )
+    
+    observeEvent(input$help_stat_fit_diag,
+                 
+                 showModal(
+                     modalDialog(
+                         withMathJax(includeMarkdown("./man/help_pages/help_stat_fit_diag.md")),
+                         easyClose = TRUE,
+                         size = "l",
+                         footer = modalButton("Close")
+                     )
+                 )
+                 
+    )
+    
     ## Input data
     
     pred_micro_data <- callModule(tableFile, "pred_micro_data",
@@ -1340,7 +1368,7 @@ server <- function(input, output, session) {
         }
     )
     
-    ## Dynamic fitting -------------------------------------------
+    ## Dynamic fitting ---------------------------------------------------------
     
     ## Help page
     
@@ -1357,18 +1385,6 @@ server <- function(input, output, session) {
                  
     )
     
-    observeEvent(input$help_dyna_fit_diag,
-                 
-                 showModal(
-                     modalDialog(
-                         withMathJax(includeMarkdown("./man/help_pages/help_dyna_fit_diag.md")),
-                         easyClose = TRUE,
-                         size = "l",
-                         footer = modalButton("Close")
-                     )
-                 )
-                 
-    )
     
     ## Data input
     
