@@ -1487,7 +1487,7 @@ server <- function(input, output, session) {
                                numericInput(paste0(id, "_xmin"), "Xmin", 0)
                         ),
                         column(6,
-                               checkboxInput(paste0(id, "_xmin_fix"), "fixed?")
+                               awesomeCheckbox(paste0(id, "_xmin_fix"), "fixed?")
                         )
                     ),
                     fluidRow(
@@ -1497,7 +1497,7 @@ server <- function(input, output, session) {
                                    numericInput(paste0(id, "_xopt"), "Xopt", 37)
                             ),
                             column(6,
-                                   checkboxInput(paste0(id, "_xopt_fix"), "fixed?")
+                                   awesomeCheckbox(paste0(id, "_xopt_fix"), "fixed?")
                             )
                         )
                     ),
@@ -1508,7 +1508,7 @@ server <- function(input, output, session) {
                                    numericInput(paste0(id, "_xmax"), "Xmax", 45)
                             ),
                             column(6,
-                                   checkboxInput(paste0(id, "_xmax_fix"), "fixed?")
+                                   awesomeCheckbox(paste0(id, "_xmax_fix"), "fixed?")
                             )
                         )
                     ),
@@ -1519,7 +1519,7 @@ server <- function(input, output, session) {
                                    numericInput(paste0(id, "_n"), "n", 1)
                             ),
                             column(6,
-                                   checkboxInput(paste0(id, "_n_fix"), "fixed?")
+                                   awesomeCheckbox(paste0(id, "_n_fix"), "fixed?")
                             )
                         )
                     ),
@@ -1530,7 +1530,7 @@ server <- function(input, output, session) {
                                    numericInput(paste0(id, "_c"), "c", 1)
                             ),
                             column(6,
-                                   checkboxInput(paste0(id, "_c_fix"), "fixed?")
+                                   awesomeCheckbox(paste0(id, "_c_fix"), "fixed?")
                             )
                         )
                     ),
@@ -1652,7 +1652,7 @@ server <- function(input, output, session) {
                 known_pars[[paste0(factor_name, "_c")]] <- NULL
             }
             
-            if (input[[model_id]] == "fullRatkosky") {
+            if (input[[model_id]] == "fullRatkowsky") {
                 start[[paste0(factor_name, "_n")]] <- NULL
                 known_pars[[paste0(factor_name, "_n")]] <- NULL
                 start[[paste0(factor_name, "_xopt")]] <- NULL

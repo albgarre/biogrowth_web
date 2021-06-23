@@ -413,7 +413,7 @@ body <- dashboardBody(
                                    numericInput("dynFit_N0", "N0 (CFU/g)", 10, min = 0)
                             ),
                             column(6,
-                                   checkboxInput("dynFit_N0_fix", "fixed?")
+                                   awesomeCheckbox("dynFit_N0_fix", "fixed?")
                             )
                         ),
                         
@@ -426,7 +426,7 @@ body <- dashboardBody(
                                    numericInput("dynFit_Q0", "Q0 (·)", 1e-3, min = 0)
                             ),
                             column(6,
-                                   checkboxInput("dynFit_Q0_fix", "fixed?")
+                                   awesomeCheckbox("dynFit_Q0_fix", "fixed?")
                             )
                         ),
                         bsTooltip("dynFit_Q0",
@@ -438,7 +438,7 @@ body <- dashboardBody(
                                    numericInput("dynFit_muopt", "mu_opt (log10 CFU/h)", .5, min = 0)
                             ),
                             column(6,
-                                   checkboxInput("dynFit_muopt_fix", "fixed?")
+                                   awesomeCheckbox("dynFit_muopt_fix", "fixed?")
                             )
                         ),
                         bsTooltip("dynFit_muopt", 
@@ -450,7 +450,7 @@ body <- dashboardBody(
                                    numericInput("dynFit_Nmax", "Nmax (CFU/g)", 1e8, min = 0)
                             ),
                             column(6,
-                                   checkboxInput("dynFit_Nmax_fix", "fixed?")
+                                   awesomeCheckbox("dynFit_Nmax_fix", "fixed?")
                             )
                         ),
                         bsTooltip("dynFit_Nmax", 
