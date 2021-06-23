@@ -532,17 +532,17 @@ server <- function(input, output, session) {
         ggplotly(p)
     })
     
-    addPopover(session, "plot_static_fit",
-               "Fitted growth curve under static conditions",
-               paste("This plot compares the fitted model against the observations.",
-                     "The data was used to fit the model, so the points should be 'reasonably' close",
-                     "If they are not, it is quite likely that the starting values of the parameters were not appropiate",
-                     "Alternatively, it is possible some parameter(s) was fixed to unrealistic values.",
-                     "Note that this modelling approach is designed for data gathered under isothermal conditions.",
-                     "In case of dynamic fits, please use the appropiate module.",
-                     sep = " "),
-               trigger = "click", placement = "left"
-    )
+    # addPopover(session, "plot_static_fit",
+    #            "Fitted growth curve under static conditions",
+    #            paste("This plot compares the fitted model against the observations.",
+    #                  "The data was used to fit the model, so the points should be 'reasonably' close",
+    #                  "If they are not, it is quite likely that the starting values of the parameters were not appropiate",
+    #                  "Alternatively, it is possible some parameter(s) was fixed to unrealistic values.",
+    #                  "Note that this modelling approach is designed for data gathered under isothermal conditions.",
+    #                  "In case of dynamic fits, please use the appropiate module.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "left"
+    # )
     
     output$static_fit_par <- renderTable(digits = -2, {
         
@@ -554,18 +554,18 @@ server <- function(input, output, session) {
         
     })
     
-    addPopover(session, "static_fit_par",
-               "Table of parameter estimates",
-               paste("This table gives the estimated parameter values and standard errors",
-                     "Only the fitted parameters are included here (i.e. not the fixed parameters).",
-                     "The confidence intervals are calculated as E(X) +/- SEM(X)*1.96.",
-                     "If the model is not identifiable, the cells for the SEM and the CI will show 'NA'.",
-                     "If this is the case, please consider repeating the fit with different starting values, or fixing some parameters.",
-                     "Also, please check that there is no mistake in the data used for the fit.",
-                     "Moreover, before blindly accepting the parameter estimates, it is advisable to check the fitting diagnostics.",
-                     sep = " "),
-               trigger = "click", placement = "right", options = list(container = "body")
-    )
+    # addPopover(session, "static_fit_par",
+    #            "Table of parameter estimates",
+    #            paste("This table gives the estimated parameter values and standard errors",
+    #                  "Only the fitted parameters are included here (i.e. not the fixed parameters).",
+    #                  "The confidence intervals are calculated as E(X) +/- SEM(X)*1.96.",
+    #                  "If the model is not identifiable, the cells for the SEM and the CI will show 'NA'.",
+    #                  "If this is the case, please consider repeating the fit with different starting values, or fixing some parameters.",
+    #                  "Also, please check that there is no mistake in the data used for the fit.",
+    #                  "Moreover, before blindly accepting the parameter estimates, it is advisable to check the fitting diagnostics.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "right", options = list(container = "body")
+    # )
     
     output$static_fit_residual <- renderPlotly({
         
@@ -582,14 +582,14 @@ server <- function(input, output, session) {
         
     })
     
-    addPopover(session, "static_fit_residual",
-               "Residuals plot",
-               paste("This plot illustrates the residuals.",
-                     "They should be centered around the origin and with constant variance.",
-                     "The blue line is a trend line that helps identifying deviations from the theoretical result.",
-                     sep = " "),
-               trigger = "click", placement = "left"
-    )
+    # addPopover(session, "static_fit_residual",
+    #            "Residuals plot",
+    #            paste("This plot illustrates the residuals.",
+    #                  "They should be centered around the origin and with constant variance.",
+    #                  "The blue line is a trend line that helps identifying deviations from the theoretical result.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "left"
+    # )
     
     output$static_fit_resHist <- renderPlot({
         
@@ -610,15 +610,15 @@ server <- function(input, output, session) {
         
     })
     
-    addPopover(session, "static_fit_resHist",
-               "Histogram of the residuals",
-               paste("This plot shows a histogram of the residuals.",
-                     "They should be normally distributed",
-                     "The blue line shows the pdf of a normal distribution with the same mean and variance as the residuals.",
-                     "The histogram should fit 'reasonably well' this line.",
-                     sep = " "),
-               trigger = "click", placement = "left"
-    )
+    # addPopover(session, "static_fit_resHist",
+    #            "Histogram of the residuals",
+    #            paste("This plot shows a histogram of the residuals.",
+    #                  "They should be normally distributed",
+    #                  "The blue line shows the pdf of a normal distribution with the same mean and variance as the residuals.",
+    #                  "The histogram should fit 'reasonably well' this line.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "left"
+    # )
     
     output$static_fit_residual_table <- renderTable(digits = 3, {
         
@@ -903,16 +903,16 @@ server <- function(input, output, session) {
                    `CI 95% right` = Estimate + 1.96*`Std. Error`)
     })
     
-    addPopover(session, "card_fit_results",
-               "Table of parameter estimates",
-               paste("This table contains the estimated parameter values and standard errors.",
-                     "The confidence intervals are calculated as E(X) +/- 1.96*SE(X).",
-                     "Cells with 'NA' values are an indicator of poor parameter identifiability.",
-                     "If this is the case, try changing starting values of fixed model parameters.",
-                     "Before blindly accepting these values, it is advisable to check the model diagnostics.",
-                     sep = " "),
-               trigger = "click", placement = "right", options = list(container = "body")
-    )
+    # addPopover(session, "card_fit_results",
+    #            "Table of parameter estimates",
+    #            paste("This table contains the estimated parameter values and standard errors.",
+    #                  "The confidence intervals are calculated as E(X) +/- 1.96*SE(X).",
+    #                  "Cells with 'NA' values are an indicator of poor parameter identifiability.",
+    #                  "If this is the case, try changing starting values of fixed model parameters.",
+    #                  "Before blindly accepting these values, it is advisable to check the model diagnostics.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "right", options = list(container = "body")
+    # )
     
     output$card_res_hist <- renderPlot({
         
@@ -930,14 +930,14 @@ server <- function(input, output, session) {
         
     })
     
-    addPopover(session, "card_res_hist",
-               "Histogram of the residuals",
-               paste("The residuals should be normally distributed with mean zero.",
-                     "The blue line shows the pdf of a normal distribution with the same mean and variance as the residuals.",
-                     "The histogram should fit the line 'reasonably well'.",
-                     sep = " "),
-               trigger = "click", placement = "left"
-    )
+    # addPopover(session, "card_res_hist",
+    #            "Histogram of the residuals",
+    #            paste("The residuals should be normally distributed with mean zero.",
+    #                  "The blue line shows the pdf of a normal distribution with the same mean and variance as the residuals.",
+    #                  "The histogram should fit the line 'reasonably well'.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "left"
+    # )
     
     output$card_res_plot <- renderPlot({
         
@@ -994,17 +994,17 @@ server <- function(input, output, session) {
         
     })
     
-    addPopover(session, "card_res_plot",
-               "Residuals plots",
-               paste("The left plot illustrate the residuals of the model",
-                     "They should be spread around the origin with constant variance.",
-                     "The blue line is a trend line that may aid identifying deviations with respect to the ideal value.",
-                     "The right plot compares the observed versus predicted observations.",
-                     "In a perfect model, all the points would sit on the dashed line.",
-                     "The grey line shows the regression line of predictions vs observations.",
-                     sep = " "),
-               trigger = "click", placement = "left"
-    )
+    # addPopover(session, "card_res_plot",
+    #            "Residuals plots",
+    #            paste("The left plot illustrate the residuals of the model",
+    #                  "They should be spread around the origin with constant variance.",
+    #                  "The blue line is a trend line that may aid identifying deviations with respect to the ideal value.",
+    #                  "The right plot compares the observed versus predicted observations.",
+    #                  "In a perfect model, all the points would sit on the dashed line.",
+    #                  "The grey line shows the regression line of predictions vs observations.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "left"
+    # )
     
     output$card_shapiro <- renderText({
         
@@ -1372,11 +1372,25 @@ server <- function(input, output, session) {
     
     ## Help page
     
-    observeEvent(input$help_dyna_fit_pars,
+    observeEvent(input$help_dyna_fit,
                  
                  showModal(
                      modalDialog(
-                         withMathJax(includeMarkdown("./man/help_pages/help_dyna_fit_pars.md")),
+                         withMathJax(includeMarkdown("./man/help_pages/help_dyna_prediction.md")),
+                         easyClose = TRUE,
+                         size = "l",
+                         footer = modalButton("Close")
+                     )
+                 )
+                 
+    )
+    
+    
+    observeEvent(input$help_dyna_fit_diag,
+                 
+                 showModal(
+                     modalDialog(
+                         withMathJax(includeMarkdown("./man/help_pages/help_stat_fit_diag.md")),
                          easyClose = TRUE,
                          size = "l",
                          footer = modalButton("Close")
@@ -2352,16 +2366,16 @@ server <- function(input, output, session) {
 
     })
     
-    addPopover(session, "globalFit_par_summary",
-               "Parameter estimates under dynamic conditions",
-               paste("This table reports the estimated parameter values and standard errors",
-                     "For non-linear regression, CI are calculated as E(X) +/- 1.96*SE(X)",
-                     "For MCMC models, they are calculated as the quantiles of the posterior distribution.",
-                     "In case some cells have 'NA' values, consider using more realistic starting values, or fixing some parameters.",
-                     "Moreover, before blindly using these parameters, it is advisable to check the model diagnostics.",
-                     sep = " "),
-               trigger = "click", placement = "right", options = list(container = "body")
-    )
+    # addPopover(session, "globalFit_par_summary",
+    #            "Parameter estimates under dynamic conditions",
+    #            paste("This table reports the estimated parameter values and standard errors",
+    #                  "For non-linear regression, CI are calculated as E(X) +/- 1.96*SE(X)",
+    #                  "For MCMC models, they are calculated as the quantiles of the posterior distribution.",
+    #                  "In case some cells have 'NA' values, consider using more realistic starting values, or fixing some parameters.",
+    #                  "Moreover, before blindly using these parameters, it is advisable to check the model diagnostics.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "right", options = list(container = "body")
+    # )
     
     output$globalFit_residualTable <- renderTable(digits = 3, {
         
@@ -2415,14 +2429,14 @@ server <- function(input, output, session) {
 
     })
     
-    addPopover(session, "globalFit_resPlot",
-               "Residuals plot",
-               paste("This plot illustrates the residuals of the model",
-                     "They should be distributed around the origin with constant variance.",
-                     "The blue line shows a trend line, which may help identifying variations with respect to the ideal trend.",
-                     sep = " "),
-               trigger = "click", placement = "left", options = list(container = "body")
-    )
+    # addPopover(session, "globalFit_resPlot",
+    #            "Residuals plot",
+    #            paste("This plot illustrates the residuals of the model",
+    #                  "They should be distributed around the origin with constant variance.",
+    #                  "The blue line shows a trend line, which may help identifying variations with respect to the ideal trend.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "left", options = list(container = "body")
+    # )
      
     output$globalFit_resHist <- renderPlot({
         
@@ -2444,15 +2458,15 @@ server <- function(input, output, session) {
 
     })
 
-    addPopover(session, "globalFit_resHist",
-               "Histogram of the residuals",
-               paste("This plot shows a histogram of the residuals.",
-                     "They should be normally distributed with mean zero",
-                     "The blue line shows the pdf of a normal distribution with the same mean and variance as the residuals.",
-                     "The histogram should adjust 'reasonably well' to the pdf.",
-                     sep = " "),
-               trigger = "click", placement = "left", options = list(container = "body")
-    )
+    # addPopover(session, "globalFit_resHist",
+    #            "Histogram of the residuals",
+    #            paste("This plot shows a histogram of the residuals.",
+    #                  "They should be normally distributed with mean zero",
+    #                  "The blue line shows the pdf of a normal distribution with the same mean and variance as the residuals.",
+    #                  "The histogram should adjust 'reasonably well' to the pdf.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "left", options = list(container = "body")
+    # )
     
     output$globalFit_shapiro <- renderText({
 
@@ -2478,27 +2492,27 @@ server <- function(input, output, session) {
 
     })
 
-    addPopover(session, "globalFit_MCMC_chain",
-               "Convergence of the Markov chain",
-               paste("This plot shows the evolution of the Markov chain.",
-                     "The plot should look like 'noise', without any obvious trend.",
-                     "If it does not, it is recommended to increase the number of MC samples.",
-                     "Alternatively, one could change the starting values or the fixed parameters.",
-                     sep = " "),
-               trigger = "click", placement = "left", options = list(container = "body")
-    )
+    # addPopover(session, "globalFit_MCMC_chain",
+    #            "Convergence of the Markov chain",
+    #            paste("This plot shows the evolution of the Markov chain.",
+    #                  "The plot should look like 'noise', without any obvious trend.",
+    #                  "If it does not, it is recommended to increase the number of MC samples.",
+    #                  "Alternatively, one could change the starting values or the fixed parameters.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "left", options = list(container = "body")
+    # )
 
     output$globalFit_MCMC_pairs <- renderPlot({
         pairs(globalFit_model()$fit_results)
     })
 
-    addPopover(session, "globalFit_MCMC_pairs",
-               "Posterior distribution of the parameters",
-               paste("This plot illustrates the posterior distribution of the model parameters.",
-                     "The histograms and pairs plot should be 'smooth'. Otherwise, parameter estimates may be unreliable.",
-                     sep = " "),
-               trigger = "click", placement = "left", options = list(container = "body")
-    )
+    # addPopover(session, "globalFit_MCMC_pairs",
+    #            "Posterior distribution of the parameters",
+    #            paste("This plot illustrates the posterior distribution of the model parameters.",
+    #                  "The histograms and pairs plot should be 'smooth'. Otherwise, parameter estimates may be unreliable.",
+    #                  sep = " "),
+    #            trigger = "click", placement = "left", options = list(container = "body")
+    # )
     
     observeEvent(input$globalFit_seed, {
         print("Seed back to normal")

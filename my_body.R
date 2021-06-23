@@ -383,7 +383,15 @@ body <- dashboardBody(
                     )
                 ),
                 fluidRow(
-                    box(title = "Input environmental conditions", solidHeader = TRUE,
+                    box(title = tagList("Input environmental conditions",
+                                        actionBttn("help_dyna_fit",
+                                                   label = NULL,
+                                                   style = "bordered",
+                                                   icon = icon("info"),
+                                                   size = "xs"
+                                        )
+                                        ), 
+                        solidHeader = TRUE,
                         status = "primary",
                         fileInput("dynFit_excel_file", "Excel file"),
                         textInput("dynFit_excel_sheet", "Sheet name", "Sheet1"),
@@ -512,7 +520,15 @@ body <- dashboardBody(
                         tags$hr(),
                         tableOutput("dynFit_residualTable")
                         ),
-                    box(title = "Fitting diagnostics", status = "warning",
+                    box(title = tagList("Fitting diagnostics", 
+                                        actionBttn("help_dyna_fit_diag",
+                                                   label = NULL,
+                                                   style = "bordered",
+                                                   icon = icon("info"),
+                                                   size = "xs"
+                                        )
+                                        ),
+                        status = "warning",
                         solidHeader = TRUE,
                         tags$h3("Residual plot"),
                         plotOutput("dynFit_resPlot"),
