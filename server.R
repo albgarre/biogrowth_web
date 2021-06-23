@@ -2152,7 +2152,7 @@ server <- function(input, output, session) {
                         conditionalPanel(
                             condition = paste0("input.", id, "_model == 'fullRatkowsky'"),
                             column(6,
-                                   numericInput(paste0(id, "_c"), "c (only for Ratkowsky)", 1)
+                                   numericInput(paste0(id, "_c"), "c", 1)
                             ),
                             column(6,
                                    awesomeCheckbox(paste0(id, "_c_fix"), "fixed?")
@@ -2336,22 +2336,36 @@ server <- function(input, output, session) {
     ## Output
     
     output$globalFit_modelPlot <- renderPlot({
-
-        withProgress({
-            
-            if (input$globalFit_addFactor) {
-                plot(globalFit_model(),
-                     add_factor = input$globalFit_added_factor,
-                     label_y1 = input$globalFit_ylabel,
-                     label_y2 = input$globalFit_secylabel,
-                     label_x = input$globalFit_xlabel)
-            } else {
-                plot(globalFit_model(),
-                     label_x = input$globalFit_xlabel,
-                     label_y1 = input$globalFit_ylabel)
-            }
-            
-        }, message = "Fitting the model")
+        
+        p <- if (input$globalFit_addFactor) {
+            plot(globalFit_model(),
+                 add_factor = input$globalFit_added_factor,
+                 label_y1 = input$globalFit_ylabel,
+                 label_y2 = input$globalFit_secylabel,
+                 label_x = input$globalFit_xlabel,
+                 line_col = input$globalFit_linecol,
+                 line_size = input$globalFit_linesize,
+                 line_type = as.numeric(input$globalFit_linetype),
+                 # point_col = input$globalFit_pointcol,
+                 point_size = input$globalFit_pointsize,
+                 line_col2 = input$globalFit_linecol2,
+                 line_size2 = input$globalFit_linesize2,
+                 line_type2 = as.numeric(input$globalFit_linetype2)
+                 )
+        } else {
+            plot(globalFit_model(),
+                 label_x = input$globalFit_xlabel,
+                 label_y1 = input$globalFit_ylabel,
+                 line_col = input$globalFit_linecol,
+                 line_size = input$globalFit_linesize,
+                 line_type = as.numeric(input$globalFit_linetype),
+                 # point_col = input$globalFit_pointcol,
+                 point_size = input$globalFit_pointsize
+                 )
+        }
+        
+        # ggplotly(p)
+        p
         
     })
     

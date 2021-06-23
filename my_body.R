@@ -693,11 +693,42 @@ body <- dashboardBody(
                         status = "success",
                         plotOutput("globalFit_modelPlot") %>% withSpinner(color = "#2492A8"),
                         tags$hr(),
-                        checkboxInput("globalFit_addFactor", "Plot a factor?"),
-                        textInput("globalFit_added_factor", "What factor?", "temperature"),
+                        
+                        
                         textInput("globalFit_xlabel", "Label of x-axis", "Time"),
                         textInput("globalFit_ylabel", "Label of y-axis", "logN"),
-                        textInput("globalFit_secylabel", "Label of secondary axis", "temperature")
+                        colourInput("globalFit_linecol", "Line colour", "black"),
+                        numericInput("globalFit_linesize", "Line size", 2, min = 0),
+                        pickerInput("globalFit_linetype", "Line type",
+                                    list(solid = 1, dash = 2,
+                                         dot = 3, dashdot = 4)
+                        ),
+                        # colourInput("globalFit_pointcol", "Point colour", "maroon"),
+                        numericInput("globalFit_pointsize", "Point size", 5, min = 0),
+                        hr(),
+                        prettySwitch("globalFit_addFactor", "Plot a factor?",
+                                     status = "success",
+                                     slim = TRUE),
+                        conditionalPanel(
+                            condition = "input.globalFit_addFactor",
+                            wellPanel(
+                                textInput("globalFit_added_factor", "What factor?", "temperature"),
+                                textInput("globalFit_secylabel", "Label of secondary axis", "temperature"),
+                                colourInput("globalFit_linecol2", "Line colour", "red"),
+                                numericInput("globalFit_linesize2", "Line size", 2, min = 0),
+                                pickerInput("globalFit_linetype2", "Line type",
+                                            list(solid = 1, dash = 2,
+                                                 dot = 3, dashdot = 4),
+                                            selected = "dot"
+                                )
+                            )
+                        )
+                        
+                        # checkboxInput("globalFit_addFactor", "Plot a factor?"),
+                        # textInput("globalFit_added_factor", "What factor?", "temperature"),
+                        # textInput("globalFit_xlabel", "Label of x-axis", "Time"),
+                        # textInput("globalFit_ylabel", "Label of y-axis", "logN"),
+                        # textInput("globalFit_secylabel", "Label of secondary axis", "temperature")
                     )
                 ),
                 fluidRow(
