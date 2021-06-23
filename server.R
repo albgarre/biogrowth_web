@@ -1461,35 +1461,47 @@ server <- function(input, output, session) {
                         )
                     ),
                     fluidRow(
-                        column(6,
-                               numericInput(paste0(id, "_xopt"), "Xopt (not for Ratkowsky model)", 37)
-                        ),
-                        column(6,
-                               checkboxInput(paste0(id, "_xopt_fix"), "fixed?")
+                        conditionalPanel(
+                            condition = paste0("input.", id, "_model != 'fullRatkowsky'"),
+                            column(6,
+                                   numericInput(paste0(id, "_xopt"), "Xopt", 37)
+                            ),
+                            column(6,
+                                   checkboxInput(paste0(id, "_xopt_fix"), "fixed?")
+                            )
                         )
                     ),
                     fluidRow(
-                        column(6,
-                               numericInput(paste0(id, "_xmax"), "Xmax (not for Zwietering model)", 45)
-                        ),
-                        column(6,
-                               checkboxInput(paste0(id, "_xmax_fix"), "fixed?")
+                        conditionalPanel(
+                            condition = paste0("input.", id, "_model != 'Zwietering'"),
+                            column(6,
+                                   numericInput(paste0(id, "_xmax"), "Xmax", 45)
+                            ),
+                            column(6,
+                                   checkboxInput(paste0(id, "_xmax_fix"), "fixed?")
+                            )
                         )
                     ),
                     fluidRow(
-                        column(6,
-                               numericInput(paste0(id, "_n"), "n (not for Ratkowsky)", 1)
-                        ),
-                        column(6,
-                               checkboxInput(paste0(id, "_n_fix"), "fixed?")
+                        conditionalPanel(
+                            condition = paste0("input.", id, "_model != 'fullRatkowsky'"),
+                            column(6,
+                                   numericInput(paste0(id, "_n"), "n", 1)
+                            ),
+                            column(6,
+                                   checkboxInput(paste0(id, "_n_fix"), "fixed?")
+                            )
                         )
                     ),
                     fluidRow(
-                        column(6,
-                               numericInput(paste0(id, "_c"), "c (only for Ratkowsky)", 1)
-                        ),
-                        column(6,
-                               checkboxInput(paste0(id, "_c_fix"), "fixed?")
+                        conditionalPanel(
+                            condition = paste0("input.", id, "_model == 'fullRatkowsky'"),
+                            column(6,
+                                   numericInput(paste0(id, "_c"), "c", 1)
+                            ),
+                            column(6,
+                                   checkboxInput(paste0(id, "_c_fix"), "fixed?")
+                            )
                         )
                     ),
                     tags$hr(),
