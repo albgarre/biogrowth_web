@@ -552,7 +552,15 @@ body <- dashboardBody(
         
         tabItem(tabName = "cardinal",
                 fluidRow(
-                    box(title = "Data input", solidHeader = TRUE,
+                    box(title = tagList("Data input", 
+                                        actionBttn("help_cardinal_input",
+                                                   label = NULL,
+                                                   style = "bordered",
+                                                   icon = icon("info"),
+                                                   size = "xs"
+                                        )
+                                        ),
+                        solidHeader = TRUE,
                         status = "primary",
                         fileInput("card_excel_file", "Excel file"),
                         textInput("card_excel_sheet", "Sheet name", "Sheet1"),

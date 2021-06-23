@@ -664,6 +664,21 @@ server <- function(input, output, session) {
     
     ## Cardinal fitting ------------------------------------------------
     
+    ## Help page
+    
+    observeEvent(input$help_cardinal_input,
+                 
+                 showModal(
+                     modalDialog(
+                         withMathJax(includeMarkdown("./man/help_pages/help_cardinal_input.md")),
+                         easyClose = TRUE,
+                         size = "l",
+                         footer = modalButton("Close")
+                     )
+                 )
+                 
+    )
+    
     ## Data input
     
     card_excelFile <- reactive({
