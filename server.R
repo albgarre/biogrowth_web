@@ -1991,6 +1991,47 @@ server <- function(input, output, session) {
     
     ## Global fitting ---------------------------------------------------
     
+    ## Help page
+    
+    observeEvent(input$help_global_counts,
+                 
+                 showModal(
+                     modalDialog(
+                         withMathJax(includeMarkdown("./man/help_pages/help_global_counts.md")),
+                         easyClose = TRUE,
+                         size = "l",
+                         footer = modalButton("Close")
+                     )
+                 )
+                 
+    )
+    
+    observeEvent(input$help_global_conditions,
+                 
+                 showModal(
+                     modalDialog(
+                         withMathJax(includeMarkdown("./man/help_pages/help_global_profile.md")),
+                         easyClose = TRUE,
+                         size = "l",
+                         footer = modalButton("Close")
+                     )
+                 )
+                 
+    )
+    
+    observeEvent(input$help_global_diagnostics,
+                 
+                 showModal(
+                     modalDialog(
+                         withMathJax(includeMarkdown("./man/help_pages/help_stat_fit_diag.md")),
+                         easyClose = TRUE,
+                         size = "l",
+                         footer = modalButton("Close")
+                     )
+                 )
+                 
+    )
+    
     ## Input microbial counts
     
     globalFit_excelFile_count <- reactive({

@@ -622,7 +622,15 @@ body <- dashboardBody(
         
         tabItem(tabName = "global_fit",
                 fluidRow(
-                    box(title = "Input microbial counts", solidHeader = TRUE,
+                    box(title = tagList("Input microbial counts", 
+                                        actionBttn("help_global_counts",
+                                                   label = NULL,
+                                                   style = "bordered",
+                                                   icon = icon("info"),
+                                                   size = "xs"
+                                        )
+                                        ),
+                        solidHeader = TRUE,
                         status = "primary",
                         fileInput("globalFit_excel_file_count", "Excel file"),
                         downloadLink("globalFit_download_example_count", "Download example")
@@ -632,7 +640,15 @@ body <- dashboardBody(
                     )
                 ),
                 fluidRow(
-                    box(title = "Input environmental conditions", solidHeader = TRUE,
+                    box(title = tagList("Input environmental conditions", 
+                                        actionBttn("help_global_conditions",
+                                                   label = NULL,
+                                                   style = "bordered",
+                                                   icon = icon("info"),
+                                                   size = "xs"
+                                        )
+                                        ),
+                        solidHeader = TRUE,
                         status = "primary",
                         fileInput("globalFit_excel_file_env", "Excel file"),
                         downloadLink("globalFit_download_example_env", "Download example")
@@ -738,14 +754,22 @@ body <- dashboardBody(
                         tags$hr(),
                         tableOutput("globalFit_residualTable")
                     ),
-                    box(title = "Fitting diagnostics", status = "warning",
+                    box(title = tagList("Fitting diagnostics",
+                                        actionBttn("help_global_diagnostics",
+                                                   label = NULL,
+                                                   style = "bordered",
+                                                   icon = icon("info"),
+                                                   size = "xs"
+                                        )
+                                        ), 
+                        status = "warning",
                         solidHeader = TRUE,
                         tags$h3("Residual plot"),
                         plotOutput("globalFit_resPlot"),
                         tags$hr(),
                         tags$h3("Histogram of the residuals"),
                         plotOutput("globalFit_resHist"),
-                        checkboxInput("globalFit_separate_hist", "Separate by experiment?"),
+                        awesomeCheckbox("globalFit_separate_hist", "Separate by experiment?"),
                         tags$h3("Shapiro-Wilk test of the residuals"),
                         verbatimTextOutput("globalFit_shapiro"),
                         conditionalPanel(
