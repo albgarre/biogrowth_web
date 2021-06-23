@@ -2278,7 +2278,7 @@ server <- function(input, output, session) {
                 known_pars[[paste0(factor_name, "_c")]] <- NULL
             }
             
-            if (input[[model_id]] == "fullRatkosky") {
+            if (input[[model_id]] == "fullRatkowsky") {
                 start[[paste0(factor_name, "_n")]] <- NULL
                 known_pars[[paste0(factor_name, "_n")]] <- NULL
                 start[[paste0(factor_name, "_xopt")]] <- NULL
