@@ -679,6 +679,19 @@ server <- function(input, output, session) {
                  
     )
     
+    observeEvent(input$help_cardinal_diagnostic,
+                 
+                 showModal(
+                     modalDialog(
+                         withMathJax(includeMarkdown("./man/help_pages/help_cardinal_diagnostic.md")),
+                         easyClose = TRUE,
+                         size = "l",
+                         footer = modalButton("Close")
+                     )
+                 )
+                 
+    )
+    
     ## Data input
     
     card_excelFile <- reactive({
@@ -970,58 +983,64 @@ server <- function(input, output, session) {
     #            trigger = "click", placement = "left"
     # )
     
+    output$card_trend_plot <- renderPlot({
+        plot(card_gamma_fit(), which = 2, add_trend = TRUE)
+    })
+    
     output$card_res_plot <- renderPlot({
         
-        # Residual vs observation
+        plot(card_gamma_fit())
         
-        p1 <- card_gamma_fit()$data %>%
-            mutate(res = card_gamma_fit()$fit_results$residuals
-                   ) %>%
-            ggplot(aes(x = mu, y = res)) + 
-            geom_point() +
-            geom_hline(yintercept = 0, linetype = 2, colour = "grey") +
-            geom_smooth(se = FALSE) +
-            xlab("Observed growth rate") + 
-            ylab("Residual")   
-        
-        # Prediction vs observation
-        
-        aa <- card_gamma_fit()$data %>%
-            mutate(res = card_gamma_fit()$fit_results$residuals)
-        
-        out <- if (card_gamma_fit()$transformation == "sq") {
-            
-            aa %>% 
-                select(observed = sq_mu, res)
-                # mutate(mu_pred = (sq_mu + res)^2)
-            
-        } else if (card_gamma_fit()$transformation == "none") {
-            
-            aa %>%
-                select(observed = mu, res) 
-                # mutate(mu_pred = mu + res)
-            
-        } else if (card_gamma_fit()$transformation == "log") {
-            
-            aa %>%
-                select(observed = log_mu, res)
-                # mutate(mu_pred = 10^(log_mu + res))
-        }
-        
-        p2 <- out %>%
-            mutate(predicted = observed + res) %>%
-            ggplot(aes(x = observed, y = predicted)) +
-            geom_point() +
-            geom_abline(slope = 1, intercept = 0, linetype = 2) +
-            geom_smooth(method = "lm", se = FALSE, colour = "grey") +
-            xlab("Observed growth rate (same scale as fitting)") +
-            ylab("Predicted growth rate (same scale as fitting)")
-            
-        # p2 <- ggplot(out) + 
-        #     geom_point(aes(x = mu_pred, y = mu)) + 
-        #     xlab("Predicted growth rate") + ylab("Observed growth rate")
-        
-        plot_grid(p1, p2, nrow = 1)
+        # # Residual vs observation
+        # 
+        # p1 <- card_gamma_fit()$data %>%
+        #     mutate(res = card_gamma_fit()$fit_results$residuals
+        #            ) %>%
+        #     ggplot(aes(x = mu, y = res)) + 
+        #     geom_point() +
+        #     geom_hline(yintercept = 0, linetype = 2, colour = "grey") +
+        #     geom_smooth(se = FALSE) +
+        #     xlab("Observed growth rate") + 
+        #     ylab("Residual")   
+        # 
+        # # Prediction vs observation
+        # 
+        # aa <- card_gamma_fit()$data %>%
+        #     mutate(res = card_gamma_fit()$fit_results$residuals)
+        # 
+        # out <- if (card_gamma_fit()$transformation == "sq") {
+        #     
+        #     aa %>% 
+        #         select(observed = sq_mu, res)
+        #         # mutate(mu_pred = (sq_mu + res)^2)
+        #     
+        # } else if (card_gamma_fit()$transformation == "none") {
+        #     
+        #     aa %>%
+        #         select(observed = mu, res) 
+        #         # mutate(mu_pred = mu + res)
+        #     
+        # } else if (card_gamma_fit()$transformation == "log") {
+        #     
+        #     aa %>%
+        #         select(observed = log_mu, res)
+        #         # mutate(mu_pred = 10^(log_mu + res))
+        # }
+        # 
+        # p2 <- out %>%
+        #     mutate(predicted = observed + res) %>%
+        #     ggplot(aes(x = observed, y = predicted)) +
+        #     geom_point() +
+        #     geom_abline(slope = 1, intercept = 0, linetype = 2) +
+        #     geom_smooth(method = "lm", se = FALSE, colour = "grey") +
+        #     xlab("Observed growth rate (same scale as fitting)") +
+        #     ylab("Predicted growth rate (same scale as fitting)")
+        #     
+        # # p2 <- ggplot(out) + 
+        # #     geom_point(aes(x = mu_pred, y = mu)) + 
+        # #     xlab("Predicted growth rate") + ylab("Observed growth rate")
+        # 
+        # plot_grid(p1, p2, nrow = 1)
         
     })
     

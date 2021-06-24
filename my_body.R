@@ -61,7 +61,7 @@ body <- dashboardBody(
                         wellPanel(
                             uiOutput("static_pars")
                         ),
-                        numericInput("static_max_time", "Maximum time", 80, min = 0),
+                        numericInput("static_max_time", "Maximum time (h)", 80, min = 0),
                         textInput("static_pred_simName", "Simulation name", "Growth condition I"),
                         bsTooltip("static_pred_simName", paste("The growth curves are coloured according to this name.",
                                                                "If it already exists, replaces the curve"),
@@ -86,7 +86,7 @@ body <- dashboardBody(
                 fluidRow(
                     boxPlus(title = "Time to X log count", status = "success",
                         solidHeader = TRUE, closable = FALSE,
-                        numericInput("static_tgt_count", "Target count", 2),
+                        numericInput("static_tgt_count", "Target count", 3),
                         tableOutput("static_timeToTable")
                         ),
                     boxPlus(title = "Log count at time X", status = "success",
@@ -195,19 +195,19 @@ body <- dashboardBody(
                 fluidRow(
                     boxPlus(title = "Primary model", closable = FALSE,
                         solidHeader = TRUE, status = "primary",
-                        numericInput("dynPred_muopt", "mu_opt", 0.5, min = 0),
+                        numericInput("dynPred_muopt", "mu_opt (log10 CFU/h)", 0.5, min = 0),
                         bsTooltip("dynPred_muopt", "The maximum specific growth rate under optimal conditions",
                                   "right", options = list(container = "body")),
-                        numericInput("dynPred_logNmax", "logNmax", 8),
+                        numericInput("dynPred_logNmax", "logNmax (log10 CFU/g)", 8),
                         bsTooltip("dynPred_logNmax", "Logarithm of the maximum count in the stationary phase",
                                   "right", options = list(container = "body")),
-                        numericInput("dynPred_logN0", "logN0", 0),
+                        numericInput("dynPred_logN0", "logN0 (log10 CFU/g)", 0),
                         bsTooltip("dynPred_logN0", "Logarithm of the initial count",
                                   "right", options = list(container = "body")),
-                        numericInput("dynPred_Q0", "Q0", 1e-3, min = 0),
+                        numericInput("dynPred_Q0", "Q0 (·)", 1e-3, min = 0),
                         bsTooltip("dynPred_Q0", "Initial value of the variable describing the lag phase; large values = no-lag",
                                   "right", options = list(container = "body")),
-                        numericInput("dynPred_maxtime", "Total time", 50, min = 0),
+                        numericInput("dynPred_maxtime", "Total time (h)", 50, min = 0),
                         bsTooltip("dynPred_maxtime", "Duration of the simulation",
                                   "right", options = list(container = "body"))
 
@@ -581,7 +581,7 @@ body <- dashboardBody(
                         # tags$hr(),
                         fluidRow(
                             column(6,
-                                   numericInput("card_muopt", "mu_opt", 0.5)
+                                   numericInput("card_muopt", "mu_opt (log10 CFU/h)", 0.5)
                                    ),
                             column(6,
                                    awesomeCheckbox("card_muopt_fix", "fixed?")
@@ -615,16 +615,28 @@ body <- dashboardBody(
                     
                 ),
                 fluidRow(
-                    box(title = "Parameter estimates", status = "warning",
+                    box(title = "Parameter estimates", 
+                        status = "warning",
                         solidHeader = TRUE,
                         tableOutput("card_fit_results") %>% withSpinner(color = "#2492A8"),
                         tags$hr(),
                         tableOutput("card_residual_table")
                     ),
-                    box(title = "Residuals diagnostics", solidHeader = TRUE,
+                    box(title = tagList("Residuals diagnostics", 
+                                        actionBttn("help_cardinal_diagnostic",
+                                                   label = NULL,
+                                                   style = "bordered",
+                                                   icon = icon("info"),
+                                                   size = "xs"
+                                        )
+                                        ), 
+                        solidHeader = TRUE,
                         status = "warning",
                         tags$h3("Residuals plot"),
                         plotOutput("card_res_plot"),
+                        tags$hr(),
+                        tags$h3("Trend plot"),
+                        plotOutput("card_trend_plot"),
                         tags$hr(),
                         tags$h3("Histogram of the residuals"),
                         plotOutput("card_res_hist"),

@@ -1,0 +1,25 @@
+---
+title: "Diagnostics of cardinal models"
+author: ""
+date: ""
+output: md_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Fitting diagnostics
+
+The tool provides four ways to evaluate the goodness of the fit. According to the hypotheses of linear regression, the model residuals should be a series of independent normal variable with mean zero and constant variance. Because the data was used to fit the data, the mean of the residuals should always be zero. If this is no the case, it is very likely that the fitting algorithm failed to converge.
+
+The module provides three ways to evaluate the hypothesis of normality of the residuals. The `Residuals plot` compares the observed versus fitted values. In a perfect fit, every point would fall on the black dashed line. A correct fit would show a cloud of points evenly distributed around that line. Any systematic deviation with respect to that line would indicate a model deficiency. In order to ease comparison, the plot illustrates a linear model of fitted vs observed values as a grey solid line. 
+
+The second one is a `Histogram of the residuals`. This plot overlaps the probability density of a normal distribution with the same mean and standard deviation as the residuals. Strong deviations between the histogram and this line likely indicates model deficiencies.
+
+The final tool to evaluate the goodness of the fit is a Shapiro-Wilk test of the residuals. According to this test, p-values lower than the value of $\alpha$ (0.05) indicate that the residuals significantly deviate from normality. Nonetheless, the results of this test should be analyzed together with the results of the other 2 tools. A p-value of the Shapiro-Wilk test > 0.05 does not indicate a good model fit when there is a clear trend in the residuals (e.g. this test does not check for autocorrelation).
+
+Furthermore, the tool compares the trend of the model predictions against the trend of the data with a `Trend plot`. Note that this plot shows a trend line based on local regression, not real prediction. Nonetheless, it can used to identify systematic deviations between 
+
+
+
